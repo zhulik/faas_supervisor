@@ -11,20 +11,29 @@ class FaasSupervisor::Application
   option :prometheus_url, type: T::String
 
   def run
-    loop do
-      functions = openfaas.functions # TODO: timeout
-      info { "Functions found: #{functions.count}" }
+    barrier.async do
+      loop do
+        functions = openfaas.functions # TODO: timeout
+        debug { "Functions found: #{functions.count}" }
 
-      update_supervisors(functions)
+        update_supervisors(functions)
 
-      info { "Total functions supervised: #{supervisors.count}" }
+        debug { "Total functions supervised: #{supervisors.count}" }
 
-      sleep(update_every)
+        sleep(update_every)
+      end
     end
+    info { "Started" }
+  end
+
+  def stop
+    barrier.stop
+    barrier.wait
   end
 
   private
 
+  memoize def barrier = Async::Barrier.new
   memoize def supervisors = {}
 
   memoize def openfaas
@@ -42,14 +51,14 @@ class FaasSupervisor::Application
     added = add_supervision(added)
     updated = update_supervision(updated)
 
-    info { "Added: #{added}, Deleted: #{deleted}, Updated: #{updated}" }
+    info { "Added: #{added}, Deleted: #{deleted}, Updated: #{updated}" } if (added + deleted + updated).positive?
   end
 
   def compare_with_deployed(functions) # rubocop:disable Metrics/AbcSize
     unsupervised = functions.values.reject(&:supervised?).map(&:name)
     deployed = functions.keys - unsupervised
     known = supervisors.keys
-    updated = (deployed & known).reject { functions[_1].supervisor_config == supervisors[_1].config }
+    updated = (deployed & known).reject { functions[_1] == supervisors[_1].function }
     [
       (deployed - known), # added functions
       updated,
@@ -58,28 +67,19 @@ class FaasSupervisor::Application
   end
 
   def add_supervision(functions)
-    return 0 if functions.empty?
-
     functions.each do |function|
-      supervisors[function.name] = FaasSupervisor::Supervisor.new(name: function.name,
-                                                                  client: openfaas,
-                                                                  config: function.supervisor_config).tap(&:run)
+      supervisors[function.name] = FaasSupervisor::Supervisor.new(function:, openfaas:).tap(&:run)
     end.count
   end
 
   def update_supervision(functions)
-    return 0 if functions.empty?
-
     delete_supervision(functions)
     add_supervision(functions)
   end
 
   def delete_supervision(functions)
-    functions = functions.select { supervisors.key?(_1.name) }
-    return 0 if functions.empty?
-
-    functions.each do |function|
-      supervisors.delete(function.name).tap(&:stop)
-    end.count
+    functions.select { supervisors.key?(_1.name) }
+             .each { supervisors.delete(_1.name).tap(&:stop) }
+             .count
   end
 end

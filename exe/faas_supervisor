@@ -10,6 +10,9 @@ Sync do
   prometheus_url = ENV.fetch("PROMETHEUS_URL", "127.0.0.1:9090")
 
   FaasSupervisor::Application.new(
-    openfaas_url:, openfaas_username:, openfaas_password:, prometheus_url:
+    openfaas_url:,
+    openfaas_username:,
+    openfaas_password:,
+    prometheus_url:
   ).run
 end
