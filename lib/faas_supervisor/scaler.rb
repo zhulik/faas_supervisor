@@ -4,33 +4,41 @@ class FaasSupervisor::Scaler
   include FaasSupervisor::Helpers
 
   option :openfaas, type: T.Instance(FaasSupervisor::Openfaas::Client)
+  option :prometheus, type: T.Instance(Prometheus::ApiClient::Client)
+
   option :function, type: T.Instance(FaasSupervisor::Openfaas::Function)
 
   def run
-    barrier.async { loop { cycle } }
-    info { "Started for function #{function.name.inspect}, update interval: #{config.update_interval}" }
+    barrier.async do
+      loop do
+        cycle
+        sleep(config.update_interval)
+      end
+    end
+    info { "Started, update interval: #{config.update_interval}" }
   end
 
   def stop
     barrier.stop
     barrier.wait
-    info { "Stopped for function #{function.name.inspect}" }
+    info { "Stopped" }
   end
 
   private
 
   memoize def barrier = Async::Barrier.new
+  memoize def policy = FaasSupervisor::ScalingPolicies::Simple.new(openfaas:, prometheus:, function:)
 
+  def logger_info = "Function = #{function.name.inspect}"
   def config = function.supervisor_config.autoscaling
 
   def cycle
-    debug { "Checking function #{function.name.inspect}" }
+    debug { "Checking..." }
 
-    sum = summary
+    old_scale, new_scale = policy.calculate
 
-    debug { JSON.pretty_generate(sum.attributes) }
-    sleep(config.update_interval)
+    return debug { "No changes in scaling" } if old_scale == new_scale
+
+    info { "Scaling from #{old_scale} to #{new_scale}..." }
   end
-
-  def summary = openfaas.function(function.name)
 end

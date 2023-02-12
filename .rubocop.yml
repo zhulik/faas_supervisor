@@ -44,3 +44,6 @@ Style/ClassAndModuleChildren:
 
 RSpec/MultipleMemoizedHelpers:
   Max: 10
+
+Style/NumberedParametersLimit:
+  Max: 2

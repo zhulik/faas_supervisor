@@ -6,14 +6,20 @@ class FaasSupervisor::Application
   option :openfaas_url, type: T::String
   option :openfaas_username, type: T::String
   option :openfaas_password, type: T::String
-  option :update_interval, type: T::Coercible::Integer, default: -> { 10 }
 
   option :prometheus_url, type: T::String
+
+  option :update_interval, type: T::Coercible::Integer, default: -> { 10 }
 
   def run
     set_traps!
 
-    barrier.async { loop { cycle } }
+    barrier.async do
+      loop do
+        cycle
+        sleep(update_interval)
+      end
+    end
     info { "Started, update interval: #{update_interval}" }
   end
 
@@ -29,6 +35,7 @@ class FaasSupervisor::Application
 
   memoize def barrier = Async::Barrier.new
   memoize def supervisors = {}
+  memoize def prometheus = Prometheus::ApiClient.client(url: prometheus_url)
 
   memoize def openfaas
     FaasSupervisor::Openfaas::Client.new(url: openfaas_url,
@@ -50,7 +57,6 @@ class FaasSupervisor::Application
     debug { "Functions found: #{functions.count}" }
 
     update_supervisors(functions)
-    sleep(update_interval)
   end
 
   def update_supervisors(functions)
@@ -80,7 +86,7 @@ class FaasSupervisor::Application
 
   def add_supervision(functions)
     functions.each do |function|
-      supervisors[function.name] = FaasSupervisor::Supervisor.new(function:, openfaas:).tap(&:run)
+      supervisors[function.name] = FaasSupervisor::Supervisor.new(function:, openfaas:, prometheus:).tap(&:run)
     end.count
   end
 
