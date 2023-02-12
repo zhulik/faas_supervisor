@@ -7,13 +7,8 @@ class FaasSupervisor::Scaler
   option :function, type: T.Instance(FaasSupervisor::Openfaas::Function)
 
   def run
-    barrier.async do
-      loop do
-        debug { "Checking function #{function.name.inspect}" }
-        sleep(config.check_every)
-      end
-    end
-    info { "Started for function #{function.name.inspect}" }
+    barrier.async { loop { cycle } }
+    info { "Started for function #{function.name.inspect}, update interval: #{config.update_interval}" }
   end
 
   def stop
@@ -24,7 +19,18 @@ class FaasSupervisor::Scaler
 
   private
 
+  memoize def barrier = Async::Barrier.new
+
   def config = function.supervisor_config.autoscaling
 
-  memoize def barrier = Async::Barrier.new
+  def cycle
+    debug { "Checking function #{function.name.inspect}" }
+
+    sum = summary
+
+    debug { JSON.pretty_generate(sum.attributes) }
+    sleep(config.update_interval)
+  end
+
+  def summary = openfaas.function(function.name)
 end

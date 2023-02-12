@@ -6,7 +6,7 @@ class FaasSupervisor::Openfaas::SupervisorConfig < Dry::Struct
   class AutoscalingConfig < Dry::Struct
     attribute :enabled, T::Params::Bool.default(false)
 
-    attribute :check_every, T::Coercible::Integer.default(10)
+    attribute :update_interval, T::Coercible::Integer.default(10)
 
     attribute :max, T::Coercible::Integer.default(20)
     attribute :min, T::Coercible::Integer.default(1)

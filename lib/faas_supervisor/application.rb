@@ -6,30 +6,24 @@ class FaasSupervisor::Application
   option :openfaas_url, type: T::String
   option :openfaas_username, type: T::String
   option :openfaas_password, type: T::String
-  option :update_every, type: T::Coercible::Integer, default: -> { 10 }
+  option :update_interval, type: T::Coercible::Integer, default: -> { 10 }
 
   option :prometheus_url, type: T::String
 
   def run
-    barrier.async do
-      loop do
-        functions = openfaas.functions # TODO: timeout
-        debug { "Functions found: #{functions.count}" }
+    set_traps!
 
-        update_supervisors(functions)
-
-        debug { "Total functions supervised: #{supervisors.count}" }
-
-        sleep(update_every)
-      end
-    end
-    info { "Started" }
+    barrier.async { loop { cycle } }
+    info { "Started, update interval: #{update_interval}" }
   end
 
   def stop
     barrier.stop
     barrier.wait
+    delete_supervision(supervisors.values.map(&:function))
   end
+
+  def wait = barrier.wait
 
   private
 
@@ -42,6 +36,23 @@ class FaasSupervisor::Application
                                          password: openfaas_password)
   end
 
+  def set_traps!
+    trap("INT") do
+      force_exit if @stopping
+      @stopping = true
+      warn("Interrupted, stopping. Press ^C once more to force exit.")
+      stop
+    end
+  end
+
+  def cycle
+    functions = openfaas.functions # TODO: timeout
+    debug { "Functions found: #{functions.count}" }
+
+    update_supervisors(functions)
+    sleep(update_interval)
+  end
+
   def update_supervisors(functions)
     functions = functions.group_by(&:name).transform_values(&:first)
 
@@ -52,6 +63,7 @@ class FaasSupervisor::Application
     updated = update_supervision(updated)
 
     info { "Added: #{added}, Deleted: #{deleted}, Updated: #{updated}" } if (added + deleted + updated).positive?
+    debug { "Total functions supervised: #{supervisors.count}" }
   end
 
   def compare_with_deployed(functions) # rubocop:disable Metrics/AbcSize
@@ -81,5 +93,10 @@ class FaasSupervisor::Application
     functions.select { supervisors.key?(_1.name) }
              .each { supervisors.delete(_1.name).tap(&:stop) }
              .count
+  end
+
+  def force_exit
+    fatal("Forced exit")
+    exit(1)
   end
 end
