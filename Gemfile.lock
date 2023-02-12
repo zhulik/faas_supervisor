@@ -94,7 +94,6 @@ GEM
     memery (1.4.1)
       ruby2_keywords (~> 0.0.2)
     multipart-post (2.3.0)
-    nats-pure (2.2.1)
     nokogiri (1.14.1-x86_64-linux)
       racc (~> 1.4)
     overcommit (0.60.0)
@@ -207,7 +206,6 @@ DEPENDENCIES
   faraday
   faraday_middleware
   memery
-  nats-pure
   overcommit
   prometheus-api-client
   rake

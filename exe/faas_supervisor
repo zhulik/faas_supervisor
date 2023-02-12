@@ -1,4 +1,15 @@
 #!/usr/bin/env ruby
 # frozen_string_literal: true
 
-require "faas_supervisor"
+require_relative "../lib/faas_supervisor"
+
+Sync do
+  openfaas_url = ENV.fetch("OPENFAAS_URL")
+  openfaas_username = ENV.fetch("OPENFAAS_USERNAME")
+  openfaas_password = ENV.fetch("OPENFAAS_PASSWORD")
+  prometheus_url = ENV.fetch("PROMETHEUS_URL", "127.0.0.1:9090")
+
+  FaasSupervisor::Application.new(
+    openfaas_url:, openfaas_username:, openfaas_password:, prometheus_url:
+  ).run
+end

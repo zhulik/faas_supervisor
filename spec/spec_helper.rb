@@ -1,10 +1,10 @@
 # frozen_string_literal: true
 
-require "faas_supervisor"
-
 require "simplecov"
 
 SimpleCov.start
+
+require "faas_supervisor"
 
 RSpec.configure do |config|
   # Enable flags like --only-failures and --next-failure
