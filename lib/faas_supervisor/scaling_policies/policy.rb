@@ -14,6 +14,7 @@ class FaasSupervisor::ScalingPolicies::Policy
   private
 
   def calculate_raw = NotImplementedError
+  def logger_info = "Function = #{function.name.inspect}"
 
   def config = function.supervisor_config.autoscaling
   def summary = openfaas.function(function.name)
