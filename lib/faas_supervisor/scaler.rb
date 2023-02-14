@@ -3,9 +3,6 @@
 class FaasSupervisor::Scaler
   include FaasSupervisor::Helpers
 
-  option :openfaas, type: T.Instance(Openfaas::Client)
-  option :prometheus, type: T.Instance(Prometheus::ApiClient::Client)
-
   option :function, type: T.Instance(Openfaas::Function)
 
   def run
@@ -27,7 +24,7 @@ class FaasSupervisor::Scaler
   private
 
   memoize def barrier = Async::Barrier.new
-  memoize def policy = FaasSupervisor::ScalingPolicies::Simple.new(openfaas:, prometheus:, function:)
+  memoize def policy = FaasSupervisor::ScalingPolicies::Simple.new(function:)
 
   def logger_info = "Function = #{function.name.inspect}"
   def config = function.supervisor_config.autoscaling

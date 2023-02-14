@@ -11,6 +11,7 @@ require "faraday"
 require "faraday_middleware"
 
 require "dry-initializer"
+require "dry/container"
 require "dry/struct"
 
 require "prometheus/api_client"

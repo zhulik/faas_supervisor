@@ -3,10 +3,10 @@
 class FaasSupervisor::ScalingPolicies::Policy
   include FaasSupervisor::Helpers
 
-  option :openfaas, type: T.Instance(Openfaas::Client)
-  option :prometheus, type: T.Instance(Prometheus::ApiClient::Client)
-
   option :function, type: T.Instance(Openfaas::Function)
+
+  inject :openfaas
+  inject :prometheus
 
   # returns two numbers: current scale and desired scale
   def calculate = calculate_raw.tap { [_1, normalize(_2)] }

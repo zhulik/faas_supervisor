@@ -11,8 +11,24 @@ class FaasSupervisor::Application
 
   option :update_interval, type: T::Coercible::Integer, default: -> { 10 }
 
+  inject :openfaas
+
+  class << self
+    def instance = @@instance
+
+    def [](key) = instance[key]
+  end
+
+  def initialize(*, **)
+    super(*, **)
+    @@instance = self # rubocop:disable Style/ClassVars
+  end
+
+  def [](key) = container[key]
+
   def run
     set_traps!
+    init_container!
 
     barrier.async do
       loop do
@@ -34,14 +50,8 @@ class FaasSupervisor::Application
   private
 
   memoize def barrier = Async::Barrier.new
-  memoize def supervisors = Supervisors.new(openfaas:, prometheus:)
-  memoize def prometheus = Prometheus::ApiClient.client(url: prometheus_url)
-
-  memoize def openfaas
-    Openfaas::Client.new(url: openfaas_url,
-                         username: openfaas_username,
-                         password: openfaas_password)
-  end
+  memoize def supervisors = Supervisors.new
+  memoize def container = Dry::Container.new
 
   def set_traps!
     trap("INT") do
@@ -62,5 +72,12 @@ class FaasSupervisor::Application
   def force_exit
     fatal { "Forced exit" }
     exit(1)
+  end
+
+  def init_container!
+    container.register(:openfaas, Openfaas::Client.new(url: openfaas_url,
+                                                       username: openfaas_username,
+                                                       password: openfaas_password))
+    container.register(:prometheus, Prometheus::ApiClient.client(url: prometheus_url))
   end
 end

@@ -11,6 +11,7 @@ gem "faraday_middleware"
 gem "memery"
 gem "zeitwerk"
 
+gem "dry-container"
 gem "dry-initializer"
 gem "dry-struct"
 

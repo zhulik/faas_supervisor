@@ -3,9 +3,6 @@
 class FaasSupervisor::Supervisor
   include FaasSupervisor::Helpers
 
-  option :openfaas, type: T.Instance(Openfaas::Client)
-  option :prometheus, type: T.Instance(Prometheus::ApiClient::Client)
-
   option :function, type: T.Instance(Openfaas::Function)
 
   def run
@@ -20,7 +17,7 @@ class FaasSupervisor::Supervisor
 
   private
 
-  memoize def scaler = Scaler.new(openfaas:, function:, prometheus:)
+  memoize def scaler = Scaler.new(function:)
 
   def logger_info = "Function = #{function.name.inspect}"
 end

@@ -3,9 +3,6 @@
 class FaasSupervisor::Supervisors
   include FaasSupervisor::Helpers
 
-  option :openfaas, type: T.Instance(Openfaas::Client)
-  option :prometheus, type: T.Instance(Prometheus::ApiClient::Client)
-
   def update(functions)
     functions = functions.group_by(&:name).transform_values(&:first)
 
@@ -39,7 +36,7 @@ class FaasSupervisor::Supervisors
 
   def add_supervision(functions)
     functions.each do |function|
-      storage[function.name] = Supervisor.new(function:, openfaas:, prometheus:).tap(&:run)
+      storage[function.name] = Supervisor.new(function:).tap(&:run)
     end.count
   end
 
