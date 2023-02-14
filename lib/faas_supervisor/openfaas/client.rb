@@ -8,8 +8,8 @@ class FaasSupervisor::Openfaas::Client
   option :password, type: T::String
 
   def scale(name, replicas) = connection.post("/system/scale-function/#{name}", { replicas: }).success?
-  def function(name) = get("/system/function/#{name}", FaasSupervisor::Openfaas::Function)
-  def functions = get_list("/system/functions", FaasSupervisor::Openfaas::Function)
+  def function(name) = get("/system/function/#{name}", Openfaas::Function)
+  def functions = get_list("/system/functions", Openfaas::Function)
 
   def get(url, klass) = connection.get(url).body.then { klass.new(_1) }
   def get_list(url, klass) = connection.get(url).body.map { klass.new(_1) }

@@ -3,15 +3,15 @@
 class FaasSupervisor::Scaler
   include FaasSupervisor::Helpers
 
-  option :openfaas, type: T.Instance(FaasSupervisor::Openfaas::Client)
+  option :openfaas, type: T.Instance(Openfaas::Client)
   option :prometheus, type: T.Instance(Prometheus::ApiClient::Client)
 
-  option :function, type: T.Instance(FaasSupervisor::Openfaas::Function)
+  option :function, type: T.Instance(Openfaas::Function)
 
   def run
     barrier.async do
       loop do
-        cycle
+        cycle # TODO: timeout
         sleep(config.update_interval)
       end
     end

@@ -5,6 +5,7 @@ module FaasSupervisor::Helpers
 
   def self.included(base)
     base.extend(Dry::Initializer)
+    base.include(FaasSupervisor)
     base.include(FaasSupervisor::Logger)
     base.include(Memery)
   end
