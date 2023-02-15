@@ -6,29 +6,25 @@ class FaasSupervisor::Scaler
   option :function, type: T.Instance(Openfaas::Function)
 
   def run
-    barrier.async do
-      loop do
-        cycle # TODO: timeout
-        sleep(config.update_interval)
-      end
-    end
+    timer.start
     info { "Started, update interval: #{config.update_interval}" }
   end
 
   def stop
-    barrier.stop
-    barrier.wait
+    timer.stop
     info { "Stopped" }
   end
 
   private
 
-  memoize def barrier = Async::Barrier.new
+  memoize def timer = Async::Timer.new(config.update_interval, start: false, run_on_start: true) { cycle }
   memoize def policy = FaasSupervisor::ScalingPolicies::Simple.new(function:)
 
   def logger_info = "Function = #{function.name.inspect}"
   def config = function.supervisor_config.autoscaling
 
+  # TODO: add timeout
+  # TODO: handle errors
   def cycle
     debug { "Checking..." }
 

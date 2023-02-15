@@ -6,10 +6,9 @@ class FaasSupervisor::Application
   option :openfaas_url, type: T::String
   option :openfaas_username, type: T::String
   option :openfaas_password, type: T::String
-
   option :prometheus_url, type: T::String
-
   option :update_interval, type: T::Coercible::Integer, default: -> { 10 }
+  option :metrics_server_port, type: T::Coercible::Integer, default: -> { 8080 }
 
   inject :openfaas
 
@@ -29,29 +28,31 @@ class FaasSupervisor::Application
   def run
     set_traps!
     init_container!
+    metrics_collector.run
+    metrics_server.run
 
-    barrier.async do
-      loop do
-        cycle # TODO: timeout
-        sleep(update_interval)
-      end
-    end
+    timer.start
+
     info { "Started, update interval: #{update_interval}" }
   end
 
   def stop
-    barrier.stop
-    barrier.wait
-    supervisors.stop
-  end
+    timer.stop
 
-  def wait = barrier.wait
+    supervisors.stop
+    metrics_collector.stop
+    metrics_server.stop
+
+    self[:openfaas].close
+  end
 
   private
 
-  memoize def barrier = Async::Barrier.new
+  memoize def timer = Async::Timer.new(update_interval, start: false, run_on_start: true) { cycle }
   memoize def supervisors = Supervisors.new
   memoize def container = Dry::Container.new
+  memoize def metrics_server = Metrics::Server.new(port: metrics_server_port)
+  memoize def metrics_collector = Metrics::Collector.new
 
   def set_traps!
     trap("INT") do
@@ -60,8 +61,12 @@ class FaasSupervisor::Application
       warn { "Interrupted, stopping. Press ^C once more to force exit." }
       stop
     end
+
+    trap("TERM") { stop }
   end
 
+  # TODO: add timeout
+  # TODO: handle errors
   def cycle
     functions = openfaas.functions
     debug { "Functions found: #{functions.count}" }
@@ -79,5 +84,6 @@ class FaasSupervisor::Application
                                                        username: openfaas_username,
                                                        password: openfaas_password))
     container.register(:prometheus, Prometheus::ApiClient.client(url: prometheus_url))
+    container.register(:metrics_store, Metrics::Store.new)
   end
 end

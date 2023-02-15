@@ -47,3 +47,7 @@ RSpec/MultipleMemoizedHelpers:
 
 Style/NumberedParametersLimit:
   Max: 2
+
+Naming/MethodParameterName:
+  AllowedNames:
+    - n

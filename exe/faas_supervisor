@@ -9,11 +9,11 @@ Async do
     openfaas_username: ENV.fetch("OPENFAAS_USERNAME"),
     openfaas_password: ENV.fetch("OPENFAAS_PASSWORD"),
     prometheus_url: ENV.fetch("PROMETHEUS_URL", "http://127.0.0.1:9090"),
-    update_interval: ENV.fetch("SUPERVISOR_UPDATE_INTERVAL", "10")
+    update_interval: ENV.fetch("SUPERVISOR_UPDATE_INTERVAL", "10"),
+    metrics_server_port: ENV.fetch("SUPERVISOR_METRICS_SERVEr_PORT", "8080")
   }
 
   app = FaasSupervisor::Application.new(**config)
 
   app.run
-  app.wait
 end

@@ -14,6 +14,8 @@ class FaasSupervisor::Openfaas::Client
   def get(url, klass) = connection.get(url).body.then { klass.new(_1) }
   def get_list(url, klass) = connection.get(url).body.map { klass.new(_1) }
 
+  def close = connection.close
+
   private
 
   memoize def connection

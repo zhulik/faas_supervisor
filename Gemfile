@@ -4,6 +4,7 @@ source "https://rubygems.org"
 
 gem "async"
 gem "async-http"
+gem "async-tools"
 
 gem "faraday"
 gem "faraday_middleware"
@@ -16,6 +17,8 @@ gem "dry-initializer"
 gem "dry-struct"
 
 gem "prometheus-api-client"
+
+gem "get_process_mem"
 
 group :development, :test do
   gem "rake"
