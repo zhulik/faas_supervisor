@@ -27,7 +27,7 @@ class FaasSupervisor::Supervisors
     unsupervised = functions.values.reject(&:supervised?).map(&:name)
     deployed = functions.keys - unsupervised
     known = storage.keys
-    updated = (deployed & known).reject { functions[_1] == storage[_1].function }
+    updated = (deployed & known).reject { functions[_1].labels == storage[_1].function.labels }
     [
       (deployed - known), # added functions
       updated,
