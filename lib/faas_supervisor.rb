@@ -3,7 +3,8 @@
 require "zeitwerk"
 
 require "async"
-require "async/barrier"
+require "async/http"
+require "async/tools"
 
 require "memery"
 
@@ -16,6 +17,8 @@ require "dry/struct"
 
 require "prometheus/api_client"
 
+require "get_process_mem"
+
 Dry::Struct.load_extensions(:pretty_print)
 
 loader = Zeitwerk::Loader.for_gem
@@ -23,7 +26,6 @@ loader.setup
 
 module FaasSupervisor # rubocop:disable Style/ClassAndModuleChildren
   class Error < StandardError; end
-  # Your code goes here...
 end
 
 loader.eager_load

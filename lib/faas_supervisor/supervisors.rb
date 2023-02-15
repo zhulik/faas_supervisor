@@ -3,14 +3,15 @@
 class FaasSupervisor::Supervisors
   include FaasSupervisor::Helpers
 
+  inject :metrics_store
+
   def update(functions)
     functions = functions.group_by(&:name).transform_values(&:first)
 
     added, updated, deleted = compare(functions)
+    added, updated, deleted = apply(added, updated, deleted)
 
-    deleted = delete_supervision(deleted)
-    added = add_supervision(added)
-    updated = update_supervision(updated)
+    metrics_store.inc("supervised_functions", added - deleted)
 
     info { "Added: #{added}, Deleted: #{deleted}, Updated: #{updated}" } if (added + deleted + updated).positive?
     debug { "Total functions supervised: #{storage.count}" }
@@ -49,5 +50,12 @@ class FaasSupervisor::Supervisors
     functions.select { storage.key?(_1.name) }
              .each { storage.delete(_1.name).tap(&:stop) }
              .count
+  end
+
+  def apply(added, updated, deleted)
+    deleted = delete_supervision(deleted)
+    added = add_supervision(added)
+    updated = update_supervision(updated)
+    [added, updated, deleted]
   end
 end

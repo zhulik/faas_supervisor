@@ -11,5 +11,9 @@ require_relative "../lib/faas_supervisor"
 # require "pry"
 # Pry.start
 
+module T
+  include Dry.Types()
+end
+
 require "irb"
 IRB.start(__FILE__)

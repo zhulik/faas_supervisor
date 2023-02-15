@@ -1,3 +1,10 @@
+PATH
+  remote: ../async-tools
+  specs:
+    async-tools (0.1.2)
+      async (~> 2.3)
+      zeitwerk (~> 2.6)
+
 GEM
   remote: https://rubygems.org/
   specs:
@@ -82,7 +89,10 @@ GEM
     faraday-retry (1.0.3)
     faraday_middleware (1.2.0)
       faraday (~> 1.0)
+    ffi (1.15.5)
     fiber-local (1.0.0)
+    get_process_mem (0.2.7)
+      ffi (~> 1.0)
     hashdiff (1.0.1)
     ice_nine (0.11.2)
     iniparse (1.5.0)
@@ -203,11 +213,13 @@ DEPENDENCIES
   async
   async-http
   async-rspec
+  async-tools!
   dry-container
   dry-initializer
   dry-struct
   faraday
   faraday_middleware
+  get_process_mem
   memery
   overcommit
   prometheus-api-client
