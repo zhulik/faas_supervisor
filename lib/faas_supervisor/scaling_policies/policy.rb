@@ -9,7 +9,9 @@ class FaasSupervisor::ScalingPolicies::Policy
   inject :prometheus
 
   # returns two numbers: current scale and desired scale
-  def calculate = calculate_raw.tap { [_1, normalize(_2)] }
+  def calculate
+    calculate_raw.then { [_1, _2.clamp(config.min, config.max)] }
+  end
 
   private
 
@@ -18,11 +20,4 @@ class FaasSupervisor::ScalingPolicies::Policy
 
   def config = function.supervisor_config.autoscaling
   def summary = openfaas.function(function.name)
-
-  def normalize(value)
-    return config.min if value < config.min
-    return config.max if value > config.max
-
-    value
-  end
 end

@@ -6,19 +6,20 @@ class FaasSupervisor::ScalingPolicies::Simple < FaasSupervisor::ScalingPolicies:
   def calculate_raw
     sum, pres = [Async { summary }, Async { pressure }].map(&:wait)
 
-    if pres == "NaN"
-      debug { "Pressure is NaN, no executions?" }
-      return [sum.replicas, 1]
+    if pres == "NaN" || pres.include?("Inf")
+      debug { "Pressure is #{pres}, no change to scaling" }
+      return [sum.replicas, sum.replicas]
     end
-    debug { "pressure: #{pres}" }
 
-    [sum.replicas, 1]
+    factor = pres.to_f > 1 ? 1 : -1
+
+    [sum.replicas, sum.replicas + factor]
   end
 
   memoize def pressure_query
     <<~QUERY
       max(rate(gateway_function_invocation_started{function_name=#{function_name}}[#{range}s])) /
-        max(rate(gateway_function_invocation_total{function_name=#{function_name}}[#{range}s]))
+        max(rate(gateway_function_invocation_total{function_name=#{function_name},code="200"}[#{range}s]))
     QUERY
   end
 

@@ -12,7 +12,7 @@ class FaasSupervisor::Metrics::Server
   inject :metrics_store
 
   def run
-    endpoint = Async::HTTP::Endpoint.parse("http://127.0.0.1:#{port}")
+    endpoint = Async::HTTP::Endpoint.parse("http://0.0.0.0:#{port}")
     @task = Async { Async::HTTP::Server.new(self, endpoint).run }
     info { "Started on #{endpoint.url}" }
   end

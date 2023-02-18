@@ -5,6 +5,8 @@ class FaasSupervisor::Scaler
 
   option :function, type: T.Instance(Openfaas::Function)
 
+  inject :openfaas
+
   def run
     timer.start
     info { "Started, update interval: #{config.update_interval}" }
@@ -33,5 +35,6 @@ class FaasSupervisor::Scaler
     return debug { "No changes in scaling" } if old_scale == new_scale
 
     info { "Scaling from #{old_scale} to #{new_scale}..." }
+    # openfaas.scale(function.name, new_scale)
   end
 end

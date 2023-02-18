@@ -14,7 +14,7 @@ class FaasSupervisor::Openfaas::Function < Dry::Struct
 
   attribute :image, T::String
   attribute :replicas, T::Integer
-  attribute :availableReplicas, T::Integer
+  attribute? :availableReplicas, T::Integer # For some reason OpenFaas does not return it for some functions
 
   attribute :labels, KV
   attribute :annotations, KV
