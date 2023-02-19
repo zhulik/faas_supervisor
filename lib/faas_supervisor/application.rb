@@ -71,7 +71,7 @@ class FaasSupervisor::Application
     functions = openfaas.functions
     debug { "Functions found: #{functions.count}" }
 
-    metrics_store.set("functions_total", functions.count)
+    metrics_store.set("functions", functions.count)
 
     supervisors.update(functions)
   rescue StandardError => e
