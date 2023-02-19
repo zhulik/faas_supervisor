@@ -66,12 +66,15 @@ class FaasSupervisor::Application
   end
 
   # TODO: add timeout
-  # TODO: handle errors
   def cycle
     functions = openfaas.functions
     debug { "Functions found: #{functions.count}" }
 
+    metrics_store.set("functions_total", functions.count)
+
     supervisors.update(functions)
+  rescue StandardError => e
+    warn(e)
   end
 
   def force_exit

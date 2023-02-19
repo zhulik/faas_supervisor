@@ -26,7 +26,6 @@ class FaasSupervisor::Scaler
   def config = function.supervisor_config.autoscaling
 
   # TODO: add timeout
-  # TODO: handle errors
   def cycle
     debug { "Checking..." }
 
@@ -36,5 +35,7 @@ class FaasSupervisor::Scaler
 
     info { "Scaling from #{old_scale} to #{new_scale}..." }
     # openfaas.scale(function.name, new_scale)
+  rescue StandardError => e
+    warn(e)
   end
 end

@@ -29,6 +29,8 @@ class FaasSupervisor::Metrics::Collector
     metrics_store.set("ruby_ractors", ractors.count)
 
     metrics_store.set("ruby_memory", GetProcessMem.new.bytes.to_s("F"), suffix: "bytes")
+  rescue StandardError => e
+    warn(e)
   end
 
   def fibers = ObjectSpace.each_object(Fiber)
