@@ -11,6 +11,7 @@ class FaasSupervisor::Application
   option :metrics_server_port, type: T::Coercible::Integer, default: -> { 8080 }
 
   inject :openfaas
+  inject :metrics_store
 
   class << self
     def instance = @@instance
