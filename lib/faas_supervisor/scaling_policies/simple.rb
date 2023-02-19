@@ -6,8 +6,8 @@ class FaasSupervisor::ScalingPolicies::Simple < FaasSupervisor::ScalingPolicies:
   def calculate_raw
     sum, pres = [Async { summary }, Async { pressure }].map(&:wait)
 
-    if pres == "NaN" || pres.include?("Inf")
-      debug { "Pressure is #{pres}, no change to scaling" }
+    if pres.nil? || pres == "NaN" || pres.include?("Inf")
+      debug { "Pressure is #{pres.inspect}, no change to scaling" }
       return [sum.replicas, sum.replicas]
     end
 
