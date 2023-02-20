@@ -39,7 +39,7 @@ class FaasSupervisor::Application
     metrics_collector.stop
     metrics_server.stop
 
-    self[:openfaas].close
+    openfaas.close
   end
 
   private
