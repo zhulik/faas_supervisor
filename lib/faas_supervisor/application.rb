@@ -116,7 +116,7 @@ class FaasSupervisor::Application
     exit(1)
   end
 
-  def init_container!
+  def init_container! # rubocop:disable Metrics/AbcSize
     container.register(:openfaas, Openfaas::Client.new(url: openfaas_url,
                                                        username: openfaas_username,
                                                        password: openfaas_password))
