@@ -55,13 +55,14 @@ class FaasSupervisor::Application
   def initialize(*, **)
     super(*, **)
     @@instance = self # rubocop:disable Style/ClassVars
+
+    init_container!
   end
 
   def [](key) = container[key]
 
   def run
     set_traps!
-    init_container!
     metrics_collector.run
     metrics_server.run
 
