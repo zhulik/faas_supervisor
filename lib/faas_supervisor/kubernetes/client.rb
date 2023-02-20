@@ -25,19 +25,14 @@ class FaasSupervisor::Kubernetes::Client
 
   def all_deployments = client.listAppsV1DeploymentForAllNamespaces["items"]
 
-  def deployments(namespace = current_namespace)
-    client.listAppsV1NamespacedDeployment(namespace)["items"]
-  end
+  def deployments(namespace = current_namespace) = client.listAppsV1NamespacedDeployment(namespace)["items"]
 
-  def token
-    File.read(TOKEN_PATH)
-  rescue Errno::ENOENT
-    warn { "ServiceAccount token file #{TOKEN_PATH} was not found. Not running in kubernetes?" }
-  end
+  def token = read_file(TOKEN_PATH)
+  def current_namespace = read_file(NAMESPACE_PATH)
 
-  def current_namespace
-    File.read(NAMESPACE_PATH)
+  def read_file(path)
+    File.read(path)
   rescue Errno::ENOENT
-    warn { "Namespace file #{NAMESPACE_PATH} was not found. Not running in kubernetes?" }
+    warn { "File #{path} was not found. Not running in kubernetes?" }
   end
 end
