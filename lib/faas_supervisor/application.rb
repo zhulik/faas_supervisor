@@ -18,8 +18,6 @@ class FaasSupervisor::Application
   def initialize(*, **)
     super(*, **)
     @@instance = self # rubocop:disable Style/ClassVars
-
-    init_container!
   end
 
   def [](key) = container[key]
@@ -48,7 +46,7 @@ class FaasSupervisor::Application
 
   memoize def timer = Async::Timer.new(config.update_interval, start: false, run_on_start: true) { cycle }
   memoize def supervisors = Supervisors.new
-  memoize def container = Dry::Container.new
+  memoize def container = Container.new(config)
   memoize def metrics_server = Metrics::Server.new(port: config.metrics_server_port)
   memoize def metrics_collector = Metrics::Collector.new
 
@@ -78,15 +76,5 @@ class FaasSupervisor::Application
   def force_exit
     fatal { "Forced exit" }
     exit(1)
-  end
-
-  def init_container! # rubocop:disable Metrics/AbcSize
-    container.register(:openfaas, Openfaas::Client.new(url: config.openfaas_url,
-                                                       username: config.openfaas_username,
-                                                       password: config.openfaas_password))
-    container.register(:kubernetes, Kubernetes::Client.new(host: config.kubernetes_url,
-                                                           scheme: config.kubernetes_scheme))
-    container.register(:prometheus, Prometheus::ApiClient.client(url: config.prometheus_url))
-    container.register(:metrics_store, Metrics::Store.new)
   end
 end
