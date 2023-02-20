@@ -18,6 +18,8 @@ require "prometheus/api_client"
 
 require "get_process_mem"
 
+require "zilla"
+
 Dry::Struct.load_extensions(:pretty_print)
 
 loader = Zeitwerk::Loader.for_gem
