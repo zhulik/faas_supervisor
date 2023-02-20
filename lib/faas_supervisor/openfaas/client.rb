@@ -20,7 +20,7 @@ class FaasSupervisor::Openfaas::Client
 
   memoize def connection
     Faraday.new(url) do |f|
-      f.request :basic_auth, username, password
+      f.request :authorization, :basic, username, password
       f.request :json
 
       f.response :raise_error

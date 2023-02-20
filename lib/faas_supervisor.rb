@@ -9,7 +9,6 @@ require "async/tools"
 require "memery"
 
 require "faraday"
-require "faraday_middleware"
 
 require "dry-initializer"
 require "dry/container"
