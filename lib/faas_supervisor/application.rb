@@ -84,9 +84,9 @@ class FaasSupervisor::Application
     container.register(:openfaas, Openfaas::Client.new(url: config.openfaas_url,
                                                        username: config.openfaas_username,
                                                        password: config.openfaas_password))
+    container.register(:kubernetes, Kubernetes::Client.new(host: config.kubernetes_url,
+                                                           scheme: config.kubernetes_scheme))
     container.register(:prometheus, Prometheus::ApiClient.client(url: config.prometheus_url))
     container.register(:metrics_store, Metrics::Store.new)
-    container.register(:kubernetes,
-                       Kubernetes::Client.new(host: config.kubernetes_url, scheme: config.kubernetes_scheme))
   end
 end
