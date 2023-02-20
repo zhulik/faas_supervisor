@@ -27,6 +27,8 @@ class FaasSupervisor::Kubernetes::Client
 
   def deployments(namespace = current_namespace) = client.listAppsV1NamespacedDeployment(namespace)["items"]
 
+  def deployment(name, namespace = current_namespace) = client.readAppsV1NamespacedDeployment(namespace, name)
+
   def token = read_file(TOKEN_PATH)
   def current_namespace = read_file(NAMESPACE_PATH)
 
