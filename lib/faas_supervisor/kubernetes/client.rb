@@ -22,15 +22,17 @@ class FaasSupervisor::Kubernetes::Client
   end
 
   def all_pods = client.listCoreV1PodForAllNamespaces["items"]
-
-  def all_deployments = client.listAppsV1DeploymentForAllNamespaces["items"]
-
-  def deployments(namespace = current_namespace) = client.listAppsV1NamespacedDeployment(namespace)["items"]
-
-  def deployment(name, namespace = current_namespace) = client.readAppsV1NamespacedDeployment(namespace, name)
-
+  def all_deployments = client.listAppsV1DeploymentForAllNamespaces["items"].map { Kubernetes::Deployment.new(_1) }
   def token = read_file(TOKEN_PATH)
   def current_namespace = read_file(NAMESPACE_PATH)
+
+  def deployments(namespace = current_namespace)
+    client.listAppsV1NamespacedDeployment(namespace)["items"].map { Kubernetes::Deployment.new(_1) }
+  end
+
+  def deployment(name, namespace = current_namespace)
+    client.readAppsV1NamespacedDeployment(namespace, name).then { Kubernetes::Deployment.new(_1) }
+  end
 
   def read_file(path)
     File.read(path)

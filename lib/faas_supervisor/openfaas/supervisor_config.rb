@@ -14,9 +14,20 @@ class FaasSupervisor::Openfaas::SupervisorConfig < Dry::Struct
     def enabled? = enabled
   end
 
+  class AutodeploymentConnfig < Dry::Struct
+    include FaasSupervisor
+
+    attribute :enabled, T::Params::Bool.default(false)
+    attribute :interval, T::Float.default(0.0)
+                                 .constructor { _1 == Dry::Core::Undefined ? _1 : IntervalParser.parse(_1) }
+
+    def enabled? = enabled
+  end
+
   attribute :enabled, T::Params::Bool.default(false)
 
   attribute :autoscaling, AutoscalingConfig.default(AutoscalingConfig.new.freeze)
+  attribute :autodeployment, AutodeploymentConnfig.default(AutodeploymentConnfig.new.freeze)
 
   def self.new(labels)
     super(labels.each_with_object({}) do |(k, v), acc|

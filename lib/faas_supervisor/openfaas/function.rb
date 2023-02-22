@@ -24,4 +24,6 @@ class FaasSupervisor::Openfaas::Function < Dry::Struct
   memoize def supervisor_config = FaasSupervisor::Openfaas::SupervisorConfig.new(labels)
 
   def supervised? = supervisor_config.enabled?
+  def autoscaling = supervisor_config.autoscaling
+  def autodeployment = supervisor_config.autodeployment
 end
