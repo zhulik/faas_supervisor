@@ -13,30 +13,37 @@ class FaasSupervisor::Kubernetes::Client
   option :host, type: T::String
   option :scheme, type: T::Coercible::String
 
+  memoize def apps_v1_api = Zilla::AppsV1Api.new(client)
+  memoize def core_v1_api = Zilla::CoreV1Api.new(client)
+
+  private
+
   memoize def client
     info { "Building client for #{scheme}:#{host}, cert_path = #{CERT_PATH}" }
 
-    Zilla.for(INPUT, host:, scheme:, faraday_config: { ssl: { ca_file: CERT_PATH } }) do |f, _target|
-      f.request(:authorization, :Bearer, token) unless token.nil?
+    Zilla::ApiClient.new(config)
+  end
+
+  memoize def config
+    Zilla::Configuration.new.tap do |cfg|
+      cfg.host = host
+      cfg.scheme = scheme
+      cfg.server_index = nil
+
+      if token
+        cfg.ssl_ca_file = CERT_PATH
+        cfg.api_key["BearerToken"] = token
+      end
     end
   end
 
-  def all_pods = client.listCoreV1PodForAllNamespaces["items"]
-  def all_deployments = client.listAppsV1DeploymentForAllNamespaces["items"].map { Kubernetes::Deployment.new(_1) }
   def token = read_file(TOKEN_PATH)
   def current_namespace = read_file(NAMESPACE_PATH)
-
-  def deployments(namespace = current_namespace)
-    client.listAppsV1NamespacedDeployment(namespace)["items"].map { Kubernetes::Deployment.new(_1) }
-  end
-
-  def deployment(name, namespace = current_namespace)
-    client.readAppsV1NamespacedDeployment(namespace, name).then { Kubernetes::Deployment.new(_1) }
-  end
 
   def read_file(path)
     File.read(path)
   rescue Errno::ENOENT
     warn { "File #{path} was not found. Not running in kubernetes?" }
+    nil
   end
 end
