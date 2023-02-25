@@ -3,12 +3,11 @@
 class FaasSupervisor::Kubernetes::Client
   include FaasSupervisor::Helpers
 
-  INPUT = "#{__dir__}/../../../data/swagger.json".freeze
-
   SERVICE_ACCOUNT_PATH = "/var/run/secrets/kubernetes.io/serviceaccount"
+
   TOKEN_PATH = "#{SERVICE_ACCOUNT_PATH}/token".freeze
   CERT_PATH = "#{SERVICE_ACCOUNT_PATH}/ca.crt".freeze
-  NAMESPACE_PATH = "/var/run/secrets/kubernetes.io/serviceaccount/namespace"
+  NAMESPACE_PATH = "#{SERVICE_ACCOUNT_PATH}/namespace".freeze
 
   option :host, type: T::String
   option :scheme, type: T::Coercible::String
@@ -29,6 +28,7 @@ class FaasSupervisor::Kubernetes::Client
       cfg.host = host
       cfg.scheme = scheme
       cfg.server_index = nil
+      cfg.api_key_prefix["BearerToken"] = "Bearer"
 
       if token
         cfg.ssl_ca_file = CERT_PATH
