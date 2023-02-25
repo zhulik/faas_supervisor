@@ -20,7 +20,25 @@ RSpec.describe FaasSupervisor::Image do
 
   describe "#digest" do
     it "returns digest" do
-      expect(subject.digest).to eq("7a96ca69409b3dfd94dec43a0d9f3ea7f437dbbe4e8bbee19bd573fe4719c275")
+      expect(subject.digest).to eq("sha256:7a96ca69409b3dfd94dec43a0d9f3ea7f437dbbe4e8bbee19bd573fe4719c275")
+    end
+  end
+
+  describe "#owner" do
+    it "returns owner" do
+      expect(subject.owner).to eq("zhulik")
+    end
+  end
+
+  describe "#name" do
+    it "returns name" do
+      expect(subject.name).to eq("fn-dummy")
+    end
+  end
+
+  describe "#full_name" do
+    it "returns owner" do
+      expect(subject.full_name).to eq("zhulik/fn-dummy")
     end
   end
 end

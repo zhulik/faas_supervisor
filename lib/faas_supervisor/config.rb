@@ -20,7 +20,7 @@ class FaasSupervisor::Config
   option :metrics_server_port, type: T::Coercible::Integer, default: -> { 8080 }
 
   class << self
-    def build # rubocop:disable Metrics/MethodLength
+    def build
       kubernetes_host = ENV.fetch("KUBERNETES_SERVICE_HOST", DEFAULT_KUBERNETES_HOST)
       kubernetes_port = ENV.fetch("KUBERNETES_SERVICE_PORT", DEFAULT_KUBERNETES_PORT)
 

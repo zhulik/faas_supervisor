@@ -17,7 +17,7 @@ Metrics/BlockLength:
     - spec/**/*_spec.rb
 
 Metrics/MethodLength:
-  Max: 10
+  Max: 15
 
 RSpec/NamedSubject:
   Enabled: false
