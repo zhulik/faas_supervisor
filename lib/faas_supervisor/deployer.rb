@@ -6,11 +6,6 @@ class FaasSupervisor::Deployer
   option :function, type: T.Instance(Openfaas::Function)
   inject :kubernetes
 
-  class Image < Dry::Struct
-    attribute :image, FaasSupervisor::Deployer::T::String
-    attribute :image_id, FaasSupervisor::Deployer::T::String
-  end
-
   def run
     timer.start
     info { "Started, update interval: #{config.interval}" }
@@ -44,13 +39,8 @@ class FaasSupervisor::Deployer
   end
 
   def images
-    pods.flat_map do |pod|
-      pod.status.container_statuses.map do |status|
-        Image.new(
-          image: status.image,
-          image_id: status.image_id
-        )
-      end
-    end.uniq
+    pods.flat_map { _1.status.container_statuses }
+        .map { Image.new(image: _1.image, image_id: _1.image_id) }
+        .uniq
   end
 end
