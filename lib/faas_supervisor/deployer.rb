@@ -15,18 +15,12 @@ class FaasSupervisor::Deployer
   inject :kubernetes
 
   def run
-    timer.start
+    Async::Timer.new(interval, run_on_start: true, parent:, call: self)
     info { "Started, update interval: #{interval}" }
   end
 
-  private
-
-  memoize def timer = Async::Timer.new(interval, start: false, run_on_start: true, parent:) { cycle }
-
-  def logger_info = "Deployment = #{deployment_name.inspect}"
-
   # TODO: add timeout
-  def cycle
+  def call
     debug { "Checking..." }
 
     return debug { "Update is in progress. Nothing to do." } if @wait_task
@@ -39,6 +33,10 @@ class FaasSupervisor::Deployer
   rescue StandardError => e
     warn(e)
   end
+
+  private
+
+  def logger_info = "Deployment = #{deployment_name.inspect}"
 
   def published_digest(image) = registry(image).published_digest(name: image.full_name, tag: image.tag)
   memoize def registry(image) = FaasSupervisor::Docker::RegistryFactory.build(image.registry)

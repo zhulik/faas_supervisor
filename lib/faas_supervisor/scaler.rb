@@ -9,20 +9,12 @@ class FaasSupervisor::Scaler
   inject :openfaas
 
   def run
-    timer.start
+    Async::Timer.new(config.update_interval, run_on_start: true, parent:, call: self)
     info { "Started, update interval: #{config.update_interval}" }
   end
 
-  private
-
-  memoize def timer = Async::Timer.new(config.update_interval, start: false, run_on_start: true, parent:) { cycle }
-  memoize def policy = ScalingPolicies::Simple.new(function:, parent:)
-
-  def logger_info = "Function = #{function.name.inspect}"
-  def config = function.supervisor_config.autoscaling
-
   # TODO: add timeout
-  def cycle
+  def call
     debug { "Checking..." }
 
     old_scale, new_scale = policy.calculate
@@ -34,4 +26,11 @@ class FaasSupervisor::Scaler
   rescue StandardError => e
     warn(e)
   end
+
+  private
+
+  memoize def policy = ScalingPolicies::Simple.new(function:, parent:)
+
+  def logger_info = "Function = #{function.name.inspect}"
+  def config = function.supervisor_config.autoscaling
 end
