@@ -8,6 +8,7 @@ class FaasSupervisor::Application
   inject :openfaas
   inject :metrics_store
   inject :kubernetes
+  inject :bus
 
   class << self
     def config = FaasSupervisor::Config.build
@@ -35,28 +36,32 @@ class FaasSupervisor::Application
   end
 
   def stop
-    timer.stop
+    barrier.stop
 
-    supervisors.stop
-    metrics_collector.stop
-    metrics_server.stop
-    self_deployer.stop unless config.self_update_interval.zero?
-
+    bus.close
     openfaas.close
   end
 
   private
 
-  memoize def timer = Async::Timer.new(config.update_interval, start: false, run_on_start: true) { cycle }
-  memoize def supervisors = Supervisors.new
+  memoize def supervisors = Supervisors.new(parent: barrier)
   memoize def container = Container.new(config)
-  memoize def metrics_server = Metrics::Server.new(port: config.metrics_server_port)
-  memoize def metrics_collector = Metrics::Collector.new
+  memoize def metrics_server = Metrics::Server.new(port: config.metrics_server_port, parent: barrier)
+  memoize def metrics_collector = Metrics::Collector.new(parent: barrier)
+
+  memoize def barrier = Async::Barrier.new
 
   memoize def self_deployer
     Deployer.new(deployment_name: config.deployment_name,
                  namespace: kubernetes.current_namespace,
-                 interval: config.self_update_interval)
+                 interval: config.self_update_interval,
+                 parent: barrier)
+  end
+
+  memoize def timer
+    Async::Timer.new(config.update_interval, start: false, run_on_start: true, parent: barrier) do
+      cycle
+    end
   end
 
   def set_traps!

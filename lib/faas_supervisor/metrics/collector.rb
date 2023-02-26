@@ -3,6 +3,8 @@
 class FaasSupervisor::Metrics::Collector
   include FaasSupervisor::Helpers
 
+  option :parent, type: T.Interface(:async)
+
   inject :metrics_store
 
   INTERVAL = 2
@@ -12,14 +14,9 @@ class FaasSupervisor::Metrics::Collector
     info { "Started" }
   end
 
-  def stop
-    timer.stop
-    info { "Stopped" }
-  end
-
   private
 
-  memoize def timer = Async::Timer.new(INTERVAL, start: false, run_on_start: true) { cycle }
+  memoize def timer = Async::Timer.new(INTERVAL, start: false, run_on_start: true, parent:) { cycle }
 
   def cycle # rubocop:disable Metrics/AbcSize
     metrics_store.set("ruby_fibers", fibers.count)

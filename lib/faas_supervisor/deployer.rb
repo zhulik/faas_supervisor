@@ -10,6 +10,8 @@ class FaasSupervisor::Deployer
   option :namespace, type: T::Strict::String
   option :interval, type: T::Strict::Float
 
+  option :parent, type: T.Interface(:async)
+
   inject :kubernetes
 
   def run
@@ -17,14 +19,9 @@ class FaasSupervisor::Deployer
     info { "Started, update interval: #{interval}" }
   end
 
-  def stop
-    timer.stop
-    info { "Stopped" }
-  end
-
   private
 
-  memoize def timer = Async::Timer.new(interval, start: false, run_on_start: true) { cycle }
+  memoize def timer = Async::Timer.new(interval, start: false, run_on_start: true, parent:) { cycle }
 
   def logger_info = "Deployment = #{deployment_name.inspect}"
 
@@ -34,14 +31,11 @@ class FaasSupervisor::Deployer
 
     return debug { "Update is in progress. Nothing to do." } if @wait_task
 
-    updated_images = images.map { async_fetch_digest_for(_1) }
-                           .map(&:wait)
-                           .reduce(&:merge)
-                           .reject { _2[:deployed] == _2[:published] }
+    updated_images = digests.reject { _2[:deployed] == _2[:published] }
 
     return debug { "Deployment image has not been updated. Nothing to do." } if updated_images.empty?
 
-    @wait_task = Async { restart_deployment!(updated_images) }
+    @wait_task = parent.async { restart_deployment!(updated_images) }
   rescue StandardError => e
     warn(e)
   end
@@ -65,8 +59,14 @@ class FaasSupervisor::Deployer
                 .uniq
   end
 
+  def digests
+    images.map { async_fetch_digest_for(_1) }
+          .map(&:wait)
+          .reduce(&:merge)
+  end
+
   def async_fetch_digest_for(image)
-    Async do
+    parent.async do
       {
         image.image => {
           published: published_digest(image),

@@ -3,6 +3,7 @@
 require "zeitwerk"
 
 require "async"
+require "async/barrier"
 require "async/http"
 require "async/tools"
 
