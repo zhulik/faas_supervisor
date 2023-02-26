@@ -32,6 +32,8 @@ class FaasSupervisor::Deployer
   def cycle
     debug { "Checking..." }
 
+    return debug { "Update is in progress. Nothing to do." } if @wait_task
+
     updated_images = images.map { async_fetch_digest_for(_1) }
                            .map(&:wait)
                            .reduce(&:merge)
@@ -39,7 +41,7 @@ class FaasSupervisor::Deployer
 
     return debug { "Deployment image has not been updated. Nothing to do." } if updated_images.empty?
 
-    restart_deployment!(updated_images)
+    @wait_task = Async { restart_deployment!(updated_images) }
   rescue StandardError => e
     warn(e)
   end
@@ -80,6 +82,7 @@ class FaasSupervisor::Deployer
 
     info { "Waiting for restart, interval=#{WAIT_UPDATE_INTERVAL}, attempts=#{WAIT_UPDATE_ATTEMPS}" }
     wait_for_restart(updates)
+    @wait_task = nil
   end
 
   def restart_annotations
