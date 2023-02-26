@@ -15,6 +15,10 @@ class FaasSupervisor::Metrics::Collector
   end
 
   def call # rubocop:disable Metrics/AbcSize
+    fibers = ObjectSpace.each_object(Fiber)
+    threads = ObjectSpace.each_object(Thread)
+    ractors = ObjectSpace.each_object(Ractor)
+
     metrics_store.set("ruby_fibers", fibers.count)
     metrics_store.set("ruby_fibers_active", fibers.count(&:alive?))
     metrics_store.set("ruby_threads", threads.count)
@@ -25,10 +29,4 @@ class FaasSupervisor::Metrics::Collector
   rescue StandardError => e
     warn(e)
   end
-
-  private
-
-  def fibers = ObjectSpace.each_object(Fiber)
-  def threads = ObjectSpace.each_object(Thread)
-  def ractors = ObjectSpace.each_object(Ractor)
 end
