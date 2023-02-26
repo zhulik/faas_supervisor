@@ -20,7 +20,7 @@ class FaasSupervisor::Scaler
   private
 
   memoize def timer = Async::Timer.new(config.update_interval, start: false, run_on_start: true) { cycle }
-  memoize def policy = FaasSupervisor::ScalingPolicies::Simple.new(function:)
+  memoize def policy = ScalingPolicies::Simple.new(function:)
 
   def logger_info = "Function = #{function.name.inspect}"
   def config = function.supervisor_config.autoscaling

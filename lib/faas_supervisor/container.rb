@@ -1,8 +1,9 @@
 # frozen_string_literal: true
 
 class FaasSupervisor::Container
-  include Dry::Container::Mixin
   include FaasSupervisor
+
+  include Dry::Container::Mixin
 
   def initialize(config)
     register(:openfaas, Openfaas::Client.new(url: config.openfaas_url,

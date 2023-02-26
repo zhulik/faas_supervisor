@@ -1,10 +1,6 @@
 # frozen_string_literal: true
 
-class FaasSupervisor::Openfaas::Function < Dry::Struct
-  include Memery
-
-  T = Dry.Types
-
+class FaasSupervisor::Openfaas::Function < FaasSupervisor::Struct
   KV = T::Hash.map(T::Coercible::String, T::Strict::String)
 
   attribute :name, T::Strict::String
@@ -21,7 +17,7 @@ class FaasSupervisor::Openfaas::Function < Dry::Struct
 
   attribute :createdAt, T::JSON::DateTime
 
-  memoize def supervisor_config = FaasSupervisor::Openfaas::SupervisorConfig.new(labels)
+  memoize def supervisor_config = Openfaas::SupervisorConfig.new(labels)
 
   def supervised? = supervisor_config.enabled?
   def autoscaling = supervisor_config.autoscaling

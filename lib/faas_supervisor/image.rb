@@ -1,10 +1,6 @@
 # frozen_string_literal: true
 
-class FaasSupervisor::Image < Dry::Struct
-  include Memery
-
-  T = Dry.Types
-
+class FaasSupervisor::Image < FaasSupervisor::Struct
   attribute :image, T::Strict::String
   attribute :image_id, T::Strict::String
 

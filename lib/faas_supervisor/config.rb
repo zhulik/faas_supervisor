@@ -1,27 +1,25 @@
 # frozen_string_literal: true
 
-class FaasSupervisor::Config
-  include FaasSupervisor::Helpers
-
+class FaasSupervisor::Config < FaasSupervisor::Struct
   DEFAULT_KUBERNETES_HOST = "127.0.0.1"
   DEFAULT_KUBERNETES_PORT = 8001
   DEFAULT_SELF_UPDATE_INTERVAL = 30
 
-  option :openfaas_url, type: T::String
-  option :openfaas_username, type: T::String
-  option :openfaas_password, type: T::String
+  attribute :openfaas_url, T::Strict::String
+  attribute :openfaas_username, T::Strict::String
+  attribute :openfaas_password, T::Strict::String
 
-  option :prometheus_url, type: T::String
+  attribute :prometheus_url, T::Strict::String
 
-  option :kubernetes_url, type: T::String
-  option :kubernetes_scheme, type: T::Coercible::String
+  attribute :kubernetes_url, T::Strict::String
+  attribute :kubernetes_scheme, T::Coercible::String
 
-  option :update_interval, type: T::Coercible::Integer, default: -> { 10 }
+  attribute :update_interval, T::Coercible::Integer.default(10)
 
-  option :metrics_server_port, type: T::Coercible::Integer, default: -> { 8080 }
+  attribute :metrics_server_port, T::Coercible::Integer.default(8080)
 
-  option :deployment_name, type: T::String, default: -> { "faas-supervisor" }
-  option :self_update_interval, type: T::Coercible::Float
+  attribute :deployment_name, T::Strict::String.default("faas-supervisor")
+  attribute :self_update_interval, T::Coercible::Float
 
   class << self
     def build

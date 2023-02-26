@@ -1,9 +1,7 @@
 # frozen_string_literal: true
 
-class FaasSupervisor::Openfaas::SupervisorConfig < Dry::Struct
-  T = Dry.Types
-
-  class AutoscalingConfig < Dry::Struct
+class FaasSupervisor::Openfaas::SupervisorConfig < FaasSupervisor::Struct
+  class AutoscalingConfig < FaasSupervisor::Struct
     attribute :enabled, T::Params::Bool.default(false)
 
     attribute :update_interval, T::Coercible::Integer.default(10)
@@ -14,9 +12,7 @@ class FaasSupervisor::Openfaas::SupervisorConfig < Dry::Struct
     def enabled? = enabled
   end
 
-  class AutodeploymentConnfig < Dry::Struct
-    include FaasSupervisor
-
+  class AutodeploymentConnfig < FaasSupervisor::Struct
     attribute :enabled, T::Params::Bool.default(false)
     attribute :interval, T::Strict::Float.default(0.0)
                                          .constructor { _1 == Dry::Core::Undefined ? _1 : IntervalParser.parse(_1) }
