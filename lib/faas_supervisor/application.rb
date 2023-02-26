@@ -10,54 +10,45 @@ class FaasSupervisor::Application
   include Logger
 
   inject :openfaas
-  inject :metrics_store
   inject :kubernetes
   inject :bus
 
-  memoize def config = Config.build
   memoize def container = Dry::Container.new
 
   def run
     init_container!
     set_traps!
+
     start_metrics_collector!
     start_metrics_server!
-    start_self_deployer!
+    start_function_listener!
 
-    Async::Timer.new(config.update_interval, run_on_start: true, parent:, call: self)
+    start_self_deployer! unless config.self_update_interval.zero?
 
-    info { "Started, update interval: #{config.update_interval}" }
+    info { "Started" }
+  rescue StandardError => e
+    fatal { e }
+    stop
+    exit(1)
   end
 
   def stop
+    bus.close
     parent.stop
-
     openfaas.close
-  end
-
-  # TODO: add timeout
-  def call
-    functions = openfaas.functions
-    debug { "Functions found: #{functions.count}" }
-
-    metrics_store.set("functions", functions.count)
-
-    supervisors.update(functions)
-  rescue StandardError => e
-    warn(e)
+    info { "Stopped" }
   end
 
   private
 
-  memoize def supervisors = Supervisors.new(parent:)
+  memoize def config = Config.build
   memoize def parent = Async::Barrier.new
 
   def start_metrics_server! = Metrics::Server.new(port: config.metrics_server_port, parent:).run
   def start_metrics_collector! = Metrics::Collector.new(parent:).run
+  def start_function_listener! = FunctionListener.new(parent:, update_interval: config.update_interval).run
 
   def start_self_deployer!
-    return if config.self_update_interval.zero?
-
     Deployer.new(deployment_name: config.deployment_name,
                  namespace: kubernetes.current_namespace,
                  interval: config.self_update_interval,
