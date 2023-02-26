@@ -3,25 +3,22 @@
 class FaasSupervisor::Metrics::Collector
   include FaasSupervisor::Helpers
 
+  option :parent, type: T.Interface(:async)
+
   inject :metrics_store
 
   INTERVAL = 2
 
   def run
-    timer.start
+    Async::Timer.new(INTERVAL, run_on_start: true, parent:, call: self)
     info { "Started" }
   end
 
-  def stop
-    timer.stop
-    info { "Stopped" }
-  end
+  def call # rubocop:disable Metrics/AbcSize
+    fibers = ObjectSpace.each_object(Fiber)
+    threads = ObjectSpace.each_object(Thread)
+    ractors = ObjectSpace.each_object(Ractor)
 
-  private
-
-  memoize def timer = Async::Timer.new(INTERVAL, start: false, run_on_start: true) { cycle }
-
-  def cycle # rubocop:disable Metrics/AbcSize
     metrics_store.set("ruby_fibers", fibers.count)
     metrics_store.set("ruby_fibers_active", fibers.count(&:alive?))
     metrics_store.set("ruby_threads", threads.count)
@@ -32,8 +29,4 @@ class FaasSupervisor::Metrics::Collector
   rescue StandardError => e
     warn(e)
   end
-
-  def fibers = ObjectSpace.each_object(Fiber)
-  def threads = ObjectSpace.each_object(Thread)
-  def ractors = ObjectSpace.each_object(Ractor)
 end

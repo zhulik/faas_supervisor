@@ -8,6 +8,7 @@ class FaasSupervisor::Application
   inject :openfaas
   inject :metrics_store
   inject :kubernetes
+  inject :bus
 
   class << self
     def config = FaasSupervisor::Config.build
@@ -25,53 +26,24 @@ class FaasSupervisor::Application
 
   def run
     set_traps!
-    metrics_collector.run
-    metrics_server.run
-    self_deployer.run unless config.self_update_interval.zero?
+    start_metrics_collector!
+    start_metrics_server!
+    start_self_deployer!
 
-    timer.start
+    Async::Timer.new(config.update_interval, run_on_start: true, parent:, call: self)
 
     info { "Started, update interval: #{config.update_interval}" }
   end
 
   def stop
-    timer.stop
+    parent.stop
 
-    supervisors.stop
-    metrics_collector.stop
-    metrics_server.stop
-    self_deployer.stop unless config.self_update_interval.zero?
-
+    bus.close
     openfaas.close
   end
 
-  private
-
-  memoize def timer = Async::Timer.new(config.update_interval, start: false, run_on_start: true) { cycle }
-  memoize def supervisors = Supervisors.new
-  memoize def container = Container.new(config)
-  memoize def metrics_server = Metrics::Server.new(port: config.metrics_server_port)
-  memoize def metrics_collector = Metrics::Collector.new
-
-  memoize def self_deployer
-    Deployer.new(deployment_name: config.deployment_name,
-                 namespace: kubernetes.current_namespace,
-                 interval: config.self_update_interval)
-  end
-
-  def set_traps!
-    trap("INT") do
-      force_exit if @stopping
-      @stopping = true
-      warn { "Interrupted, stopping. Press ^C once more to force exit." }
-      stop
-    end
-
-    trap("TERM") { stop }
-  end
-
   # TODO: add timeout
-  def cycle
+  def call
     functions = openfaas.functions
     debug { "Functions found: #{functions.count}" }
 
@@ -82,7 +54,36 @@ class FaasSupervisor::Application
     warn(e)
   end
 
-  def force_exit
+  private
+
+  memoize def container = Container.new(config)
+  memoize def supervisors = Supervisors.new(parent:)
+  memoize def parent = Async::Barrier.new
+
+  def start_metrics_server! = Metrics::Server.new(port: config.metrics_server_port, parent:).run
+  def start_metrics_collector! = Metrics::Collector.new(parent:).run
+
+  def start_self_deployer!
+    return if config.self_update_interval.zero?
+
+    Deployer.new(deployment_name: config.deployment_name,
+                 namespace: kubernetes.current_namespace,
+                 interval: config.self_update_interval,
+                 parent:).run
+  end
+
+  def set_traps!
+    trap("INT") do
+      force_exit! if @stopping
+      @stopping = true
+      warn { "Interrupted, stopping. Press ^C once more to force exit." }
+      stop
+    end
+
+    trap("TERM") { stop }
+  end
+
+  def force_exit!
     fatal { "Forced exit" }
     exit(1)
   end

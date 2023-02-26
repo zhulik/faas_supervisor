@@ -3,6 +3,8 @@
 class FaasSupervisor::Supervisors
   include FaasSupervisor::Helpers
 
+  option :parent, type: T.Interface(:async)
+
   inject :metrics_store
 
   def update(functions)
@@ -16,8 +18,6 @@ class FaasSupervisor::Supervisors
     info { "Added: #{added}, Deleted: #{deleted}, Updated: #{updated}" } if (added + deleted + updated).positive?
     debug { "Total functions supervised: #{storage.count}" }
   end
-
-  def stop = delete_supervision(storage.values.map(&:function))
 
   private
 
@@ -37,7 +37,7 @@ class FaasSupervisor::Supervisors
 
   def add_supervision(functions)
     functions.each do |function|
-      storage[function.name] = Supervisor.new(function:).tap(&:run)
+      storage[function.name] = Supervisor.new(function:, parent:).tap(&:run)
     end.count
   end
 

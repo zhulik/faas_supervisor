@@ -3,8 +3,6 @@
 
 require_relative "../lib/faas_supervisor"
 
-Async do
-  app = FaasSupervisor::Application.build
-
-  app.run
+Sync do
+  FaasSupervisor::Application.build.run
 end
