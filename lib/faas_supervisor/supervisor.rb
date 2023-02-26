@@ -20,7 +20,11 @@ class FaasSupervisor::Supervisor
   private
 
   memoize def scaler = Scaler.new(function:)
-  memoize def deployer = Deployer.new(function:)
-
   def logger_info = "Function = #{function.name.inspect}"
+
+  memoize def deployer
+    Deployer.new(deployment_name: function.name,
+                 namespace: function.namespace,
+                 config: function.supervisor_config.autodeployment)
+  end
 end

@@ -6,7 +6,10 @@ class FaasSupervisor::Deployer
   WAIT_UPDATE_ATTEMPS = 10
   WAIT_UPDATE_INTERVAL = 5
 
-  option :function, type: T.Instance(Openfaas::Function)
+  option :deployment_name, type: T::String
+  option :namespace, type: T::String
+  option :config, type: T.Instance(FaasSupervisor::Openfaas::SupervisorConfig::AutodeploymentConnfig)
+
   inject :kubernetes
 
   def run
@@ -23,8 +26,7 @@ class FaasSupervisor::Deployer
 
   memoize def timer = Async::Timer.new(config.interval, start: false, run_on_start: true) { cycle }
 
-  def logger_info = "Function = #{function.name.inspect}"
-  def config = function.supervisor_config.autodeployment
+  def logger_info = "Deployment = #{deployment_name.inspect}"
 
   # TODO: add timeout
   def cycle
@@ -35,9 +37,9 @@ class FaasSupervisor::Deployer
                            .reduce(&:merge)
                            .reject { _2[:deployed] == _2[:published] }
 
-    return debug { "Function has not been updated. Nothing to do." } if updated_images.empty?
+    return debug { "Deployment image has not been updated. Nothing to do." } if updated_images.empty?
 
-    restart_deployment!(updated_images) if function.name == "notifier"
+    restart_deployment!(updated_images) if deployment_name == "databases-backups-stats-collector"
   rescue StandardError => e
     warn(e)
   end
@@ -45,14 +47,14 @@ class FaasSupervisor::Deployer
   def published_digest(image) = registry(image).published_digest(name: image.full_name, tag: image.tag)
   memoize def registry(image) = FaasSupervisor::Docker::RegistryFactory.build(image.registry)
 
-  memoize def deployment = kubernetes.apps_v1_api.read_apps_v1_namespaced_deployment(function.name, function.namespace)
+  memoize def deployment = kubernetes.apps_v1_api.read_apps_v1_namespaced_deployment(deployment_name, namespace)
   def label_selector = deployment.spec.selector.match_labels.map { "#{_1}=#{_2}" }.join(",")
 
   def running_pods
     kubernetes.core_v1_api
-              .list_core_v1_namespaced_pod(function.namespace, label_selector:)
+              .list_core_v1_namespaced_pod(namespace, label_selector:)
               .items
-              .reject { _1.metadata.deletion_timestamp } # Do not check terminating pods
+              .reject { _1.metadata.deletion_timestamp }
   end
 
   def images
@@ -73,8 +75,8 @@ class FaasSupervisor::Deployer
   end
 
   def restart_deployment!(updates)
-    info { "Function image has been updated, restarting deployment..." }
-    kubernetes.apps_v1_api.patch_apps_v1_namespaced_deployment(function.name, function.namespace, restart_annotations)
+    info { "Deployment image has been updated, restarting deployment..." }
+    kubernetes.apps_v1_api.patch_apps_v1_namespaced_deployment(deployment_name, namespace, restart_annotations)
 
     info { "Waiting for restart, interval=#{WAIT_UPDATE_INTERVAL}, attempts=#{WAIT_UPDATE_ATTEMPS}" }
     wait_for_restart(updates)
@@ -98,6 +100,6 @@ class FaasSupervisor::Deployer
 
       sleep(WAIT_UPDATE_INTERVAL)
     end
-    warn { "Can't wait for deployment, maximum attempts reached" }
+    warn { "Can't wait for deployment restart, maximum attempts reached" }
   end
 end
