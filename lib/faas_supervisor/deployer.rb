@@ -39,7 +39,7 @@ class FaasSupervisor::Deployer
 
     return debug { "Deployment image has not been updated. Nothing to do." } if updated_images.empty?
 
-    restart_deployment!(updated_images) if deployment_name == "databases-backups-stats-collector"
+    restart_deployment!(updated_images)
   rescue StandardError => e
     warn(e)
   end
