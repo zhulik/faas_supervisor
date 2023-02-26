@@ -7,7 +7,7 @@ class FaasSupervisor::Metrics::Server
 
   NOT_FOUND = Protocol::HTTP::Response[404, {}, ["Not found"]].freeze
 
-  option :port, type: T::Integer
+  option :port, type: T::Strict::Integer
 
   inject :metrics_store
 

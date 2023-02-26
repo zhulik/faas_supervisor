@@ -6,9 +6,9 @@ class FaasSupervisor::Deployer
   WAIT_UPDATE_ATTEMPS = 10
   WAIT_UPDATE_INTERVAL = 5
 
-  option :deployment_name, type: T::String
-  option :namespace, type: T::String
-  option :interval, type: T::Float
+  option :deployment_name, type: T::Strict::String
+  option :namespace, type: T::Strict::String
+  option :interval, type: T::Strict::Float
 
   inject :kubernetes
 

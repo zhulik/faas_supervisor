@@ -3,9 +3,9 @@
 class FaasSupervisor::Openfaas::Client
   include FaasSupervisor::Helpers
 
-  option :url, type: T::String
-  option :username, type: T::String
-  option :password, type: T::String
+  option :url, type: T::Strict::String
+  option :username, type: T::Strict::String
+  option :password, type: T::Strict::String
 
   def scale(name, replicas) = connection.post("/system/scale-function/#{name}", { replicas: }).success?
   def function(name) = get("/system/function/#{name}", Openfaas::Function)
