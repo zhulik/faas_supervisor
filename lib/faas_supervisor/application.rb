@@ -32,7 +32,6 @@ class FaasSupervisor::Application
   def stop
     parent.stop
 
-    bus.close
     openfaas.close
   end
 
