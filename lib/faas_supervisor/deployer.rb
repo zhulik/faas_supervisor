@@ -48,7 +48,7 @@ class FaasSupervisor::Deployer
   memoize def deployment = kubernetes.apps_v1_api.read_apps_v1_namespaced_deployment(function.name, function.namespace)
   def label_selector = deployment.spec.selector.match_labels.map { "#{_1}=#{_2}" }.join(",")
 
-  def active_pods
+  def running_pods
     kubernetes.core_v1_api
               .list_core_v1_namespaced_pod(function.namespace, label_selector:)
               .items
@@ -56,9 +56,9 @@ class FaasSupervisor::Deployer
   end
 
   def images
-    active_pods.flat_map { _1.status.container_statuses }
-               .map { Image.new(image: _1.image, image_id: _1.image_id) }
-               .uniq
+    running_pods.flat_map { _1.status.container_statuses }
+                .map { Image.new(image: _1.image, image_id: _1.image_id) }
+                .uniq
   end
 
   def async_fetch_digest_for(image)
