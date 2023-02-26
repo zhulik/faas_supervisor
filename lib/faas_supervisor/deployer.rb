@@ -8,13 +8,13 @@ class FaasSupervisor::Deployer
 
   option :deployment_name, type: T::String
   option :namespace, type: T::String
-  option :config, type: T.Instance(FaasSupervisor::Openfaas::SupervisorConfig::AutodeploymentConnfig)
+  option :interval, type: T::Float
 
   inject :kubernetes
 
   def run
     timer.start
-    info { "Started, update interval: #{config.interval}" }
+    info { "Started, update interval: #{interval}" }
   end
 
   def stop
@@ -24,7 +24,7 @@ class FaasSupervisor::Deployer
 
   private
 
-  memoize def timer = Async::Timer.new(config.interval, start: false, run_on_start: true) { cycle }
+  memoize def timer = Async::Timer.new(interval, start: false, run_on_start: true) { cycle }
 
   def logger_info = "Deployment = #{deployment_name.inspect}"
 
@@ -92,6 +92,7 @@ class FaasSupervisor::Deployer
     ]
   end
 
+  # TODO: notifications
   def wait_for_restart(updates)
     WAIT_UPDATE_ATTEMPS.times do |attempt|
       debug { "Wait restart attempt #{attempt + 1}" }

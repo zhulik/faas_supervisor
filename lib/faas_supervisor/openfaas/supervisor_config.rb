@@ -18,8 +18,8 @@ class FaasSupervisor::Openfaas::SupervisorConfig < Dry::Struct
     include FaasSupervisor
 
     attribute :enabled, T::Params::Bool.default(false)
-    attribute :interval, T::Float.default(0.0)
-                                 .constructor { _1 == Dry::Core::Undefined ? _1 : IntervalParser.parse(_1) }
+    attribute :interval, T::Strict::Float.default(0.0)
+                                         .constructor { _1 == Dry::Core::Undefined ? _1 : IntervalParser.parse(_1) }
 
     def enabled? = enabled
   end

@@ -5,8 +5,8 @@ class FaasSupervisor::Image < Dry::Struct
 
   T = Dry.Types
 
-  attribute :image, T::String
-  attribute :image_id, T::String
+  attribute :image, T::Strict::String
+  attribute :image_id, T::Strict::String
 
   def registry = tokens.first
   def owner = tokens[1]

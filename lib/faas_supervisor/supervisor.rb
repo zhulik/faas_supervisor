@@ -25,6 +25,6 @@ class FaasSupervisor::Supervisor
   memoize def deployer
     Deployer.new(deployment_name: function.name,
                  namespace: function.namespace,
-                 config: function.supervisor_config.autodeployment)
+                 interval: function.supervisor_config.autodeployment.interval)
   end
 end

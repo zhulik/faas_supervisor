@@ -7,6 +7,7 @@ class FaasSupervisor::Application
 
   inject :openfaas
   inject :metrics_store
+  inject :kubernetes
 
   class << self
     def config = FaasSupervisor::Config.build
@@ -26,6 +27,7 @@ class FaasSupervisor::Application
     set_traps!
     metrics_collector.run
     metrics_server.run
+    self_deployer.run unless config.self_update_interval.zero?
 
     timer.start
 
@@ -38,6 +40,7 @@ class FaasSupervisor::Application
     supervisors.stop
     metrics_collector.stop
     metrics_server.stop
+    self_deployer.stop unless config.self_update_interval.zero?
 
     openfaas.close
   end
@@ -49,6 +52,12 @@ class FaasSupervisor::Application
   memoize def container = Container.new(config)
   memoize def metrics_server = Metrics::Server.new(port: config.metrics_server_port)
   memoize def metrics_collector = Metrics::Collector.new
+
+  memoize def self_deployer
+    Deployer.new(deployment_name: config.deployment_name,
+                 namespace: kubernetes.current_namespace,
+                 interval: config.self_update_interval)
+  end
 
   def set_traps!
     trap("INT") do

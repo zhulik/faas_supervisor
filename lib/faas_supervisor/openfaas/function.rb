@@ -5,16 +5,16 @@ class FaasSupervisor::Openfaas::Function < Dry::Struct
 
   T = Dry.Types
 
-  KV = T::Hash.map(T::Coercible::String, T::String)
+  KV = T::Hash.map(T::Coercible::String, T::Strict::String)
 
-  attribute :name, T::String
-  attribute :namespace, T::String
+  attribute :name, T::Strict::String
+  attribute :namespace, T::Strict::String
 
-  attribute? :invocationCount, T::Integer # For some reason OpenFaas does not return it for some functions
+  attribute? :invocationCount, T::Strict::Integer # For some reason OpenFaas does not return it for some functions
 
-  attribute :image, T::String
-  attribute :replicas, T::Integer
-  attribute? :availableReplicas, T::Integer # For some reason OpenFaas does not return it for some functions
+  attribute :image, T::Strict::String
+  attribute :replicas, T::Strict::Integer
+  attribute? :availableReplicas, T::Strict::Integer # For some reason OpenFaas does not return it for some functions
 
   attribute :labels, KV
   attribute :annotations, KV

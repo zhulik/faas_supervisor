@@ -12,6 +12,8 @@ class FaasSupervisor::Kubernetes::Client
   option :host, type: T::String
   option :scheme, type: T::Coercible::String
 
+  memoize def current_namespace = read_file(NAMESPACE_PATH) || ENV.fetch("KUBERNETES_NAMESPACE")
+
   memoize def apps_v1_api = Zilla::AppsV1Api.new(client)
   memoize def core_v1_api = Zilla::CoreV1Api.new(client)
 
@@ -38,7 +40,6 @@ class FaasSupervisor::Kubernetes::Client
   end
 
   def token = read_file(TOKEN_PATH)
-  def current_namespace = read_file(NAMESPACE_PATH)
 
   def read_file(path)
     File.read(path)
