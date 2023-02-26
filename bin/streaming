@@ -1,0 +1,53 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+require "bundler/setup"
+require_relative "../lib/faas_supervisor"
+
+class Watcher
+  def initialize
+    @conn = Faraday.new("http://127.0.0.1:8001")
+  end
+
+  # TODO: handle errors
+  # TODO: handle timeouts
+  # TODO: handle resourceVersion
+  def stream(url, &)
+    queue = Async::Queue.new
+    @task = Async { stream_to_queue(url, queue) }
+    queue.each(&)
+  end
+
+  def stop
+    @task&.stop
+    @task&.wait
+  end
+
+  private
+
+  def stream_to_queue(url, queue)
+    @conn.get(url, { watch: 1 }) do |req|
+      buf = ""
+      req.options.on_data = proc do |seg, _overall_received_bytes, _env|
+        buf += seg
+        lines = buf.split("\n")
+        seg.end_with?("\n") ? (buf = "") : (*lines, buf = lines)
+        lines.each { queue << JSON.parse(_1, symbolize_names: true) }
+      end
+    end
+  ensure
+    queue << nil
+    @conn.close
+  end
+end
+
+Sync do
+  w = Watcher.new
+  Async do
+    w.stream("/api/v1/namespaces/openfaas/pods") { pp(_1[:type]) } # rubocop:disable Lint/Debugger
+  end
+
+  sleep(2)
+
+  w.stop
+end
