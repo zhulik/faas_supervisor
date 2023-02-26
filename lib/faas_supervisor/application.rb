@@ -15,9 +15,10 @@ class FaasSupervisor::Application
   inject :bus
 
   memoize def config = Config.build
-  memoize def container = Container.new(config)
+  memoize def container = Dry::Container.new
 
   def run
+    init_container!
     set_traps!
     start_metrics_collector!
     start_metrics_server!
@@ -78,5 +79,18 @@ class FaasSupervisor::Application
   def force_exit!
     fatal { "Forced exit" }
     exit(1)
+  end
+
+  def init_container! # rubocop:disable Metrics/AbcSize
+    {
+      openfaas: Openfaas::Client.new(url: config.openfaas_url,
+                                     username: config.openfaas_username,
+                                     password: config.openfaas_password),
+      kubernetes: Kubernetes::Client.new(host: config.kubernetes_url,
+                                         scheme: config.kubernetes_scheme),
+      prometheus: ::Prometheus::ApiClient.client(url: config.prometheus_url),
+      metrics_store: Metrics::Store.new,
+      bus: Async::Bus::Bus.new(parent:)
+    }.each { container.register(_1, _2) }
   end
 end
