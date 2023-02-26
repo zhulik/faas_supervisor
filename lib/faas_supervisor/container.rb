@@ -13,6 +13,6 @@ class FaasSupervisor::Container
                                                  scheme: config.kubernetes_scheme))
     register(:prometheus, ::Prometheus::ApiClient.client(url: config.prometheus_url))
     register(:metrics_store, Metrics::Store.new)
-    register(:bus, Async::Bus.get)
+    register(:bus, Async::Bus::Bus.new)
   end
 end

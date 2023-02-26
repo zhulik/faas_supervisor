@@ -1,28 +1,21 @@
 # frozen_string_literal: true
 
 class FaasSupervisor::Application
-  include FaasSupervisor::Helpers
+  extend FaasSupervisor::Injector
 
-  option :config, type: T.Instance(Config)
+  include Singleton
+
+  include FaasSupervisor
+  include Memery
+  include Logger
 
   inject :openfaas
   inject :metrics_store
   inject :kubernetes
   inject :bus
 
-  class << self
-    def config = FaasSupervisor::Config.build
-    def build = new(config:)
-    def instance = @@instance
-    def [](key) = instance[key]
-  end
-
-  def initialize(*, **)
-    super(*, **)
-    @@instance = self # rubocop:disable Style/ClassVars
-  end
-
-  def [](key) = container[key]
+  memoize def config = Config.build
+  memoize def container = Container.new(config)
 
   def run
     set_traps!
@@ -56,7 +49,6 @@ class FaasSupervisor::Application
 
   private
 
-  memoize def container = Container.new(config)
   memoize def supervisors = Supervisors.new(parent:)
   memoize def parent = Async::Barrier.new
 

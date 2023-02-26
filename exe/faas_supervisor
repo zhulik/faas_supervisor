@@ -4,5 +4,5 @@
 require_relative "../lib/faas_supervisor"
 
 Sync do
-  FaasSupervisor::Application.build.run
+  FaasSupervisor::Application.instance.run
 end
