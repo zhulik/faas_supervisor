@@ -4,5 +4,5 @@ class FaasSupervisor::Struct < Dry::Struct
   include FaasSupervisor
   include Memery
 
-  T = Dry.Types
+  T = FaasSupervisor::Types
 end

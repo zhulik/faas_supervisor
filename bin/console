@@ -12,7 +12,7 @@ require_relative "../lib/faas_supervisor"
 # Pry.start
 
 module T
-  include Dry.Types()
+  include FaasSupervisor::Types
 end
 
 require "irb"

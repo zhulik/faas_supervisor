@@ -10,7 +10,7 @@ class FaasSupervisor::Kubernetes::Client
   NAMESPACE_PATH = "#{SERVICE_ACCOUNT_PATH}/namespace".freeze
 
   option :host, type: T::Strict::String
-  option :scheme, type: T::Coercible::String
+  option :scheme, type: T::StringLike
 
   memoize def current_namespace = read_file(NAMESPACE_PATH) || ENV.fetch("KUBERNETES_NAMESPACE")
 

@@ -12,7 +12,7 @@ class FaasSupervisor::Config < FaasSupervisor::Struct
   attribute :prometheus_url, T::Strict::String
 
   attribute :kubernetes_url, T::Strict::String
-  attribute :kubernetes_scheme, T::Coercible::String
+  attribute :kubernetes_scheme, T::StringLike
 
   attribute :update_interval, T::Coercible::Integer.default(10)
 

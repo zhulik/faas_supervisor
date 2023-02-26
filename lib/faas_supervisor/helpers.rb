@@ -4,7 +4,7 @@ module FaasSupervisor::Helpers
   include FaasSupervisor
   include FaasSupervisor::Logger
 
-  T = Dry.Types
+  T = FaasSupervisor::Types
 
   def self.included(base)
     base.extend(Dry::Initializer)
