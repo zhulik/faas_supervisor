@@ -95,8 +95,8 @@ class FaasSupervisor::Deployer
     [
       {
         op: "add",
-        path: "/spec/template/metadata/annotations/faas_supervisor.restartedAt",
-        value: Time.now
+        path: "/spec/template/metadata/annotations",
+        value: { "faas_supervisor.restartedAt": Time.now }
       }
     ]
   end
