@@ -17,11 +17,12 @@ class FaasSupervisor::Application
     @task = Async::Task.current
     set_traps!
 
+    start_notifier!
     start_metrics_server!
     start_ruby_runtime_monitor!
     start_metrics_collector!
     start_function_listener!
-    start_self_deployer! unless config.self_update_interval.zero?
+    start_self_deployer!
 
     info { "Started" }
   rescue StandardError => e
@@ -44,7 +45,15 @@ class FaasSupervisor::Application
   def start_metrics_collector! = MetricsCollector.new.run
   def start_metrics_server! = Metrics::Server.new(prefix: :faas_supervisor, port: config.metrics_server_port).run
 
+  def start_notifier!
+    return unless config.notification_webhook_url
+
+    Notifier.new(url: config.notification_webhook_url).run
+  end
+
   def start_self_deployer!
+    return if config.self_update_interval.zero?
+
     Deployer.new(deployment_name: config.deployment_name,
                  namespace: kubernetes.current_namespace,
                  interval: config.self_update_interval).run
