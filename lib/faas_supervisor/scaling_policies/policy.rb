@@ -3,8 +3,6 @@
 class FaasSupervisor::ScalingPolicies::Policy
   include FaasSupervisor::Helpers
 
-  option :parent, type: T.Interface(:async)
-
   option :function, type: T.Instance(Openfaas::Function)
 
   inject :openfaas

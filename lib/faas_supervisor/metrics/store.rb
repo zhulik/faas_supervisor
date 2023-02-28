@@ -2,23 +2,16 @@
 
 class FaasSupervisor::Metrics::Store
   include FaasSupervisor::Helpers
+  include Bus::Subscriber
 
   include Enumerable
 
-  Name = T::String.constrained(min_size: 1)
+  Name = T::StringLike.constrained(min_size: 1)
 
-  def inc(name, n = 1, suffix: "total", **tags)
-    validate_metric!(name, suffix, tags)
-    key = [name, tags]
-
-    counters[key] ||= { name:, tags:, suffix:, value: 0 }
-    counters[key][:value] += n
-  end
-
-  def set(name, value, suffix: "total", **tags)
-    validate_metric!(name, suffix, tags)
-    key = [name, tags]
-    counters[key] ||= { name:, tags:, suffix:, value: }
+  def set(name, value:, suffix: "total", **labels)
+    validate_metric!(name, suffix, labels)
+    key = [name, labels]
+    counters[key] ||= { name:, labels:, suffix:, value: }
     counters[key].merge!(value:)
   end
 
@@ -28,11 +21,11 @@ class FaasSupervisor::Metrics::Store
 
   memoize def counters = {}
 
-  def validate_metric!(name, suffix, tags)
+  def validate_metric!(name, suffix, labels)
     raise ArgumentError, "Metric name must be a non-empty string" unless Name.valid?(name)
     raise ArgumentError, "Suffix name must be a non-empty string" unless Name.valid?(suffix)
 
-    tags.each do |k, v|
+    labels.each do |k, v|
       raise ArgumentError, "Tag name must be a non-empty string" unless Name.valid?(k)
       raise ArgumentError, "Tag value must be a non-empty string" unless Name.valid?(v)
     end

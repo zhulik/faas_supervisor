@@ -12,6 +12,7 @@ gem "memery"
 gem "zeitwerk"
 
 gem "dry-container"
+gem "dry-events"
 gem "dry-initializer"
 gem "dry-struct"
 

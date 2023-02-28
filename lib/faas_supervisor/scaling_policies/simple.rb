@@ -23,7 +23,7 @@ class FaasSupervisor::ScalingPolicies::Simple < FaasSupervisor::ScalingPolicies:
     QUERY
   end
 
-  def fetch_sum_pres = [parent.async { summary }, parent.async { pressure }].map(&:wait)
+  def fetch_sum_pres = [Async { summary }, Async { pressure }].map(&:wait)
 
   def pressure = prometheus.query(query: pressure_query).dig("result", 0, "value", 1)
 
