@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# TODO: extract a separate class for working image ids
 class FaasSupervisor::Image < FaasSupervisor::Struct
   attribute :image, T::Strict::String
   attribute :image_id, T::Strict::String

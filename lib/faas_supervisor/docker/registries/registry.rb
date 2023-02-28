@@ -4,14 +4,16 @@ class FaasSupervisor::Docker::Registries::Registry
   include FaasSupervisor::Helpers
 
   ACCEPT_HEADERS = [
-    "application/vnd.docker.distribution.manifest.list.v2+json"
+    "application/vnd.docker.distribution.manifest.list.v2+json",
+    "application/vnd.oci.image.index.v1+json"
   ].freeze
 
   def published_digest(name:, tag:)
     url = "/v2/#{name}/manifests/#{tag}"
     connection.get(url, {},
                    {
-                     Authorization: "Bearer #{token(name)}"
+                     Authorization: "Bearer #{token(name)}",
+                     Accept: ACCEPT_HEADERS
                    }).headers["docker-content-digest"]
   rescue Faraday::Error => e
     warn { url }

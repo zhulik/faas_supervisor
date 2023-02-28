@@ -1,0 +1,37 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+require "bundler/setup"
+require_relative "../lib/faas_supervisor"
+
+IMAGES = [
+  "ghcr.io/crazy-max/samba:latest",
+  "ghcr.io/zhulik/fn-base:latest",
+  "docker.io/library/alpine:latest"
+].freeze
+
+IMAGES.each do |image|
+  pp(FaasSupervisor::Docker::Image.new(image))
+end
+
+# def fetch(registry, image)
+#   Async do
+#     {
+#       image: Async { image.image },
+#       our_digest: Async { registry.published_digest(name: image.full_name, tag: image.tag) },
+#       skopeo_digest: Async { `skopeo inspect docker://#{image.image} | jq -r .Digest`.strip }
+#     }.transform_values(&:wait)
+#   end
+# end
+
+# Sync do
+#   res = IMAGES.map do |image|
+#     image = FaasSupervisor::Image.new(image:, image_id: "")
+#     registry = FaasSupervisor::Docker::RegistryFactory.build(image.registry)
+#     compare(registry, image)
+#   end.map(&:wait)
+
+#   res.each do |info|
+#     raise StandardError, "" if info[:our_digest] != info[:skopeo_digest]
+#   end
+# end

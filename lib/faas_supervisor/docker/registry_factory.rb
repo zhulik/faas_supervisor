@@ -4,7 +4,8 @@ module FaasSupervisor::Docker::RegistryFactory
   include FaasSupervisor::Docker
 
   REGISTRIES = {
-    "ghcr.io" => Registries::Ghcr.new
+    "ghcr.io" => Registries::Ghcr.new,
+    "docker.io" => Registries::Docker.new
   }.freeze
 
   def self.build(name)
