@@ -94,7 +94,7 @@ class FaasSupervisor::Deployer
   def restart_annotations
     [
       {
-        op: "replace",
+        op: "add",
         path: "/spec/template/metadata/annotations/faas_supervisor.restartedAt",
         value: Time.now
       }
