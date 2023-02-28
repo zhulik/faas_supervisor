@@ -48,17 +48,14 @@ class FaasSupervisor::Deployer
   memoize def deployment = kubernetes.apps_v1_api.read_apps_v1_namespaced_deployment(deployment_name, namespace)
   def label_selector = deployment.spec.selector.match_labels.map { "#{_1}=#{_2}" }.join(",")
 
-  def running_pods
+  def images
     kubernetes.core_v1_api
               .list_core_v1_namespaced_pod(namespace, label_selector:)
               .items
               .reject { _1.metadata.deletion_timestamp }
-  end
-
-  def images
-    running_pods.flat_map { _1.status.container_statuses }
-                .map { Image.new(image: _1.image, image_id: _1.image_id) }
-                .uniq
+              .flat_map { _1.status.container_statuses }
+              .map { Image.new(image: _1.image, image_id: _1.image_id) }
+              .uniq
   end
 
   def digests
@@ -101,7 +98,7 @@ class FaasSupervisor::Deployer
     ]
   end
 
-  # TODO: notifications
+  # TODO: use watch
   def wait_for_restart(updates)
     WAIT_UPDATE_ATTEMPS.times do |attempt|
       debug { "Wait restart attempt #{attempt + 1}" }
