@@ -4,12 +4,11 @@ class FaasSupervisor::Scaler
   include FaasSupervisor::Helpers
 
   option :function, type: T.Instance(Openfaas::Function)
-  option :parent, type: T.Interface(:async)
 
   inject :openfaas
 
   def run
-    Async::Timer.new(config.update_interval, run_on_start: true, parent:, call: self)
+    Async::Timer.new(config.update_interval, run_on_start: true, call: self)
     info { "Started, update interval: #{config.update_interval}" }
   end
 
@@ -29,7 +28,7 @@ class FaasSupervisor::Scaler
 
   private
 
-  memoize def policy = ScalingPolicies::Simple.new(function:, parent:)
+  memoize def policy = ScalingPolicies::Simple.new(function:)
 
   def logger_info = "Function = #{function.name.inspect}"
   def config = function.supervisor_config.autoscaling

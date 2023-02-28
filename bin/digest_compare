@@ -4,34 +4,36 @@
 require "bundler/setup"
 require_relative "../lib/faas_supervisor"
 
-IMAGES = [
-  "ghcr.io/crazy-max/samba:latest",
-  "ghcr.io/zhulik/fn-base:latest",
-  "docker.io/library/alpine:latest"
-].freeze
+kubernetes = FaasSupervisor::Kubernetes::Client.new(host: "127.0.0.1:8001", scheme: :http)
 
-IMAGES.each do |image|
-  pp(FaasSupervisor::Docker::Image.new(image))
+IMAGES = kubernetes.core_v1_api
+                   .list_core_v1_pod_for_all_namespaces
+                   .items
+                   .flat_map { _1.status.container_statuses }
+                   .map { FaasSupervisor::Image.new(image: _1.image, image_id: _1.image_id) }
+                   .uniq(&:image)
+
+SEM = Async::Semaphore.new(10)
+
+def fetch(registry, image)
+  SEM.async do
+    {
+      image: SEM.async { image.image },
+      our_digest: SEM.async { registry.published_digest(name: image.full_name, tag: image.tag) },
+      skopeo_digest: SEM.async { `skopeo inspect docker://#{image.image} | jq -r .Digest`.strip }
+    }.transform_values(&:wait)
+  end
 end
 
-# def fetch(registry, image)
-#   Async do
-#     {
-#       image: Async { image.image },
-#       our_digest: Async { registry.published_digest(name: image.full_name, tag: image.tag) },
-#       skopeo_digest: Async { `skopeo inspect docker://#{image.image} | jq -r .Digest`.strip }
-#     }.transform_values(&:wait)
-#   end
-# end
+Sync do
+  res = IMAGES.filter_map do |image|
+    registry = FaasSupervisor::Docker::RegistryFactory.build(image.registry)
+    fetch(registry, image)
+  rescue ArgumentError
+    nil
+  end.map(&:wait)
 
-# Sync do
-#   res = IMAGES.map do |image|
-#     image = FaasSupervisor::Image.new(image:, image_id: "")
-#     registry = FaasSupervisor::Docker::RegistryFactory.build(image.registry)
-#     compare(registry, image)
-#   end.map(&:wait)
-
-#   res.each do |info|
-#     raise StandardError, "" if info[:our_digest] != info[:skopeo_digest]
-#   end
-# end
+  res.each do |info|
+    puts(info) if info[:our_digest] != info[:skopeo_digest]
+  end
+end

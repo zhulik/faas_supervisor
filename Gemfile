@@ -4,7 +4,7 @@ source "https://rubygems.org"
 
 gem "async"
 gem "async-http"
-gem "async-tools"
+gem "async-tools", path: "../async-tools"
 
 gem "faraday"
 
@@ -12,6 +12,7 @@ gem "memery"
 gem "zeitwerk"
 
 gem "dry-container"
+gem "dry-events"
 gem "dry-initializer"
 gem "dry-struct"
 

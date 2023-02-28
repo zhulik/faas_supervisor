@@ -3,6 +3,8 @@
 class FaasSupervisor::Deployer
   include FaasSupervisor::Helpers
 
+  include Bus::Publisher
+
   WAIT_UPDATE_ATTEMPS = 10
   WAIT_UPDATE_INTERVAL = 5
 
@@ -10,12 +12,10 @@ class FaasSupervisor::Deployer
   option :namespace, type: T::Strict::String
   option :interval, type: T::Strict::Float
 
-  option :parent, type: T.Interface(:async)
-
   inject :kubernetes
 
   def run
-    Async::Timer.new(interval, run_on_start: true, parent:, call: self)
+    Async::Timer.new(interval, run_on_start: true, call: self)
     info { "Started, update interval: #{interval}" }
   end
 
@@ -29,7 +29,11 @@ class FaasSupervisor::Deployer
 
     return debug { "Deployment image has not been updated. Nothing to do." } if updated_images.empty?
 
-    @wait_task = parent.async { restart_deployment!(updated_images) }
+    publish_event("kubernetes.application.published_image_updated", kind: "deployment",
+                                                                    name: deployment_name,
+                                                                    namespace:)
+
+    @wait_task = Async { restart_deployment!(updated_images) }
   rescue StandardError => e
     warn(e)
   end
@@ -64,7 +68,7 @@ class FaasSupervisor::Deployer
   end
 
   def async_fetch_digest_for(image)
-    parent.async do
+    Async do
       {
         image.image => {
           published: published_digest(image),
@@ -81,6 +85,10 @@ class FaasSupervisor::Deployer
     info { "Waiting for restart, interval=#{WAIT_UPDATE_INTERVAL}, attempts=#{WAIT_UPDATE_ATTEMPS}" }
     wait_for_restart(updates)
     @wait_task = nil
+
+    publish_event("kubernetes.application.restarted", kind: "deployment",
+                                                      name: deployment_name,
+                                                      namespace:)
   end
 
   def restart_annotations

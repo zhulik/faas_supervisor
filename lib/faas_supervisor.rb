@@ -14,6 +14,7 @@ require "memery"
 require "faraday"
 
 require "dry-initializer"
+require "dry/events"
 require "dry/container"
 require "dry/struct"
 

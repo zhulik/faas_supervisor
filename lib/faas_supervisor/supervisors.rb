@@ -2,21 +2,20 @@
 
 class FaasSupervisor::Supervisors
   include FaasSupervisor::Helpers
-
-  option :parent, type: T.Interface(:async)
-
-  inject :metrics_store
+  include Bus::Publisher
 
   def update(functions)
     functions = functions.group_by(&:name).transform_values(&:first)
 
     added, updated, deleted = compare(functions)
     added, updated, deleted = apply(added, updated, deleted)
+    total = storage.count
 
-    metrics_store.inc("supervised_functions", added - deleted)
-
-    info { "Added: #{added}, Deleted: #{deleted}, Updated: #{updated}" } if (added + deleted + updated).positive?
-    debug { "Total functions supervised: #{storage.count}" }
+    if (added + deleted + updated).positive?
+      info { "Added: #{added}, Deleted: #{deleted}, Updated: #{updated}" }
+      publish_event("faas_supervisor.supervised_functions.changed", added:, deleted:, updated:, total:)
+    end
+    debug { "Total functions supervised: #{total}" }
   end
 
   private
@@ -37,7 +36,7 @@ class FaasSupervisor::Supervisors
 
   def add_supervision(functions)
     functions.each do |function|
-      storage[function.name] = Supervisor.new(function:, parent:).tap(&:run)
+      storage[function.name] = Supervisor.new(function:).tap(&:run)
     end.count
   end
 

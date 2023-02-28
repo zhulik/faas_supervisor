@@ -2,15 +2,14 @@
 
 class FaasSupervisor::FunctionListener
   include FaasSupervisor::Helpers
+  include Bus::Publisher
 
-  option :parent, type: T.Interface(:async)
   option :update_interval, type: T::Coercible::Float
 
   inject :openfaas
-  inject :metrics_store
 
   def run
-    Async::Timer.new(update_interval, run_on_start: true, parent:, call: self)
+    Async::Timer.new(update_interval, run_on_start: true, call: self)
     info { "Started, update interval: #{update_interval}" }
   end
 
@@ -19,7 +18,7 @@ class FaasSupervisor::FunctionListener
     functions = openfaas.functions
     debug { "Functions found: #{functions.count}" }
 
-    metrics_store.set("functions", functions.count)
+    publish_event("faas_supervisor.functions.found", functions.count)
 
     supervisors.update(functions)
   rescue StandardError => e
@@ -28,5 +27,5 @@ class FaasSupervisor::FunctionListener
 
   private
 
-  memoize def supervisors = Supervisors.new(parent:)
+  memoize def supervisors = Supervisors.new
 end
