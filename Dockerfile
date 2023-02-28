@@ -14,6 +14,7 @@ RUN apk update &&\
 
 COPY Gemfile Gemfile.lock ./
 RUN bundle install
+RUN bundle exec bootsnap precompile --gemfile exe/ lib/
 
 FROM base
 
@@ -21,6 +22,6 @@ COPY --from=builder /mnt .
 
 ADD . .
 
-USER app
+# USER app
 
 CMD ["bundle", "exec", "./exe/faas_supervisor"]

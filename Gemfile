@@ -6,6 +6,8 @@ gem "async"
 gem "async-http"
 gem "async-tools"
 
+gem "bootsnap", require: false
+
 gem "faraday"
 
 gem "memery"

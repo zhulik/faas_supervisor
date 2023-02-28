@@ -1,8 +1,9 @@
 #!/usr/bin/env ruby
 # frozen_string_literal: true
 
+require "bootsnap"
+Bootsnap.setup(cache_dir: "tmp/cache")
+
 require_relative "../lib/faas_supervisor"
 
-Sync do
-  FaasSupervisor::Application.instance.run
-end
+Sync { FaasSupervisor::Application.instance.run }
