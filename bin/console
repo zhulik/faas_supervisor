@@ -5,7 +5,7 @@ require "bootsnap"
 Bootsnap.setup(cache_dir: "tmp/cache")
 
 require "bundler/setup"
-require_relative "../lib/faas_supervisor"
+require_relative "../lib/app"
 
 # You can add fixtures and/or initialization code here to make experimenting
 # with your gem easier. You can also use a different console, if you like.
@@ -15,7 +15,7 @@ require_relative "../lib/faas_supervisor"
 # Pry.start
 
 module T
-  include FaasSupervisor::Types
+  include App::Types
 end
 
 require "irb"

@@ -4,6 +4,6 @@
 require "bootsnap"
 Bootsnap.setup(cache_dir: "tmp/cache")
 
-require_relative "../lib/faas_supervisor"
+require_relative "../lib/app"
 
-Sync { FaasSupervisor::Application.instance.run }
+Sync { App::Application.instance.run }

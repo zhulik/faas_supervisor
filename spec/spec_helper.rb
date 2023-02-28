@@ -4,7 +4,7 @@ require "simplecov"
 
 SimpleCov.start
 
-require "faas_supervisor"
+require "app"
 
 RSpec.configure do |config|
   # Enable flags like --only-failures and --next-failure

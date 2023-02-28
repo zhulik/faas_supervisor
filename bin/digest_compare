@@ -2,15 +2,15 @@
 # frozen_string_literal: true
 
 require "bundler/setup"
-require_relative "../lib/faas_supervisor"
+require_relative "../lib/app"
 
-kubernetes = FaasSupervisor::Kubernetes::Client.new(host: "127.0.0.1:8001", scheme: :http)
+kubernetes = App::Kubernetes::Client.new(host: "127.0.0.1:8001", scheme: :http)
 
 IMAGES = kubernetes.core_v1_api
                    .list_core_v1_pod_for_all_namespaces
                    .items
                    .flat_map { _1.status.container_statuses }
-                   .map { FaasSupervisor::Image.new(image: _1.image, image_id: _1.image_id) }
+                   .map { App::Image.new(image: _1.image, image_id: _1.image_id) }
                    .uniq(&:image)
 
 SEM = Async::Semaphore.new(10)
@@ -27,7 +27,7 @@ end
 
 Sync do
   res = IMAGES.filter_map do |image|
-    registry = FaasSupervisor::Docker::RegistryFactory.build(image.registry)
+    registry = App::Docker::RegistryFactory.build(image.registry)
     fetch(registry, image)
   rescue ArgumentError
     nil
