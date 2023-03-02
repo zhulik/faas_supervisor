@@ -7,7 +7,7 @@ class App::Metrics::RubyRuntimeMonitor
   INTERVAL = 2
 
   def run
-    Async::Timer.new(INTERVAL, run_on_start: true, call: self)
+    Async::Timer.new(INTERVAL, run_on_start: true, call: self, on_error: ->(e) { warn(e) })
     info { "Started" }
   end
 
@@ -22,7 +22,5 @@ class App::Metrics::RubyRuntimeMonitor
                                      ruby_threads_active: { value: threads.count(&:alive?) },
                                      ruby_ractors: { value: ractors.count },
                                      ruby_memory: { value: GetProcessMem.new.bytes.to_s("F"), suffix: "bytes" })
-  rescue StandardError => e
-    warn(e)
   end
 end

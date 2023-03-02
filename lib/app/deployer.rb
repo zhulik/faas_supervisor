@@ -15,7 +15,7 @@ class App::Deployer
   inject :kubernetes
 
   def run
-    Async::Timer.new(interval, run_on_start: true, call: self)
+    Async::Timer.new(interval, run_on_start: true, call: self, on_error: ->(e) { warn(e) })
     info { "Started, update interval: #{interval}" }
   end
 
@@ -24,6 +24,8 @@ class App::Deployer
     debug { "Checking..." }
 
     return debug { "Update is in progress. Nothing to do." } if @wait_task
+
+    warn { "Cannot find digests, deployment with 0 replicas?" } if digests.empty?
 
     updated_images = digests.reject { _2[:deployed] == _2[:published] }
 
@@ -34,8 +36,6 @@ class App::Deployer
                                                                     namespace:)
 
     @wait_task = Async { restart_deployment!(updated_images) }
-  rescue StandardError => e
-    warn(e)
   end
 
   private
@@ -61,7 +61,7 @@ class App::Deployer
   def digests
     images.map { async_fetch_digest_for(_1) }
           .map(&:wait)
-          .reduce(&:merge)
+          .reduce(&:merge) || []
   end
 
   def async_fetch_digest_for(image)

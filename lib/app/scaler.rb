@@ -8,7 +8,7 @@ class App::Scaler
   inject :openfaas
 
   def run
-    Async::Timer.new(config.update_interval, run_on_start: true, call: self)
+    Async::Timer.new(config.update_interval, run_on_start: true, call: self, on_error: ->(e) { warn(e) })
     info { "Started, update interval: #{config.update_interval}" }
   end
 
@@ -22,8 +22,6 @@ class App::Scaler
 
     info { "Scaling from #{old_scale} to #{new_scale}..." }
     # openfaas.scale(function.name, new_scale)
-  rescue StandardError => e
-    warn(e)
   end
 
   private

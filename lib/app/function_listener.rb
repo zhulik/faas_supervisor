@@ -9,7 +9,7 @@ class App::FunctionListener
   inject :openfaas
 
   def run
-    Async::Timer.new(update_interval, run_on_start: true, call: self)
+    Async::Timer.new(update_interval, run_on_start: true, call: self, on_error: ->(e) { warn(e) })
     info { "Started, update interval: #{update_interval}" }
   end
 
@@ -21,8 +21,6 @@ class App::FunctionListener
     publish_event("faas_supervisor.functions.found", functions.count)
 
     supervisors.update(functions)
-  rescue StandardError => e
-    warn(e)
   end
 
   private

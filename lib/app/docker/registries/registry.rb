@@ -3,22 +3,16 @@
 class App::Docker::Registries::Registry
   include App::Helpers
 
-  ACCEPT_HEADERS = [
-    "application/vnd.docker.distribution.manifest.list.v2+json",
-    "application/vnd.oci.image.index.v1+json"
-  ].freeze
+  DEFAULT_HEADERS = {
+    Accept: [
+      "application/vnd.docker.distribution.manifest.list.v2+json",
+      "application/vnd.oci.image.index.v1+json"
+    ].freeze
+  }.freeze
 
   def published_digest(name:, tag:)
-    url = "/v2/#{name}/manifests/#{tag}"
-    connection.get(url, {},
-                   {
-                     Authorization: "Bearer #{token(name)}",
-                     Accept: ACCEPT_HEADERS
-                   }).headers["docker-content-digest"]
-  rescue Faraday::Error => e
-    warn { url }
-    warn { e }
-    nil
+    connection.get("/v2/#{name}/manifests/#{tag}", {}, DEFAULT_HEADERS.merge(Authorization: "Bearer #{token(name)}"))
+              .headers["docker-content-digest"]
   end
 
   private
