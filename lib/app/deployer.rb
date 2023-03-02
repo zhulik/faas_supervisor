@@ -54,7 +54,7 @@ class App::Deployer
               .items
               .reject { _1.metadata.deletion_timestamp }
               .flat_map { _1.status.container_statuses }
-              .map { Image.new(image: _1.image, image_id: _1.image_id) }
+              .map { PodImage.new(target: _1.image, deployed: _1.image_id) }
               .uniq
   end
 
@@ -67,7 +67,7 @@ class App::Deployer
   def async_fetch_digest_for(image)
     Async do
       {
-        image.image => {
+        image.target => {
           published: published_digest(image),
           deployed: image.digest
         }
@@ -103,7 +103,7 @@ class App::Deployer
     WAIT_UPDATE_ATTEMPS.times do |attempt|
       debug { "Wait restart attempt #{attempt + 1}" }
 
-      return info { "Deployment restarted" } if images.all? { _1.digest == updates[_1.image][:published] }
+      return info { "Deployment restarted" } if images.all? { _1.digest == updates[_1.target][:published] }
 
       sleep(WAIT_UPDATE_INTERVAL)
     end

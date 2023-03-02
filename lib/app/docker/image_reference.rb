@@ -5,7 +5,7 @@ class App::Docker::ImageReference
   DEFAULT_TAG = "latest"
   DEFAULT_OWNER = "library"
 
-  attr_reader :registry, :owner, :name, :tag, :digest, :version_suffix
+  attr_reader :registry, :owner, :name, :tag, :digest
 
   def initialize(name)
     @registry = DEFAULT_REGISTRY
@@ -14,7 +14,10 @@ class App::Docker::ImageReference
     parse(name)
   end
 
-  def to_s(*) = "#{registry}/#{owner}/#{name}#{version_suffix}"
+  def to_s(*) = "#{registry}/#{full_name}#{version_suffix}"
+
+  def version_suffix = digest ? "@#{digest}" : ":#{tag}"
+  def full_name = "#{owner}/#{name}"
 
   private
 
@@ -52,6 +55,5 @@ class App::Docker::ImageReference
       @owner = owner
       @name = name
     end
-    @version_suffix = digest ? "@#{digest}" : ":#{tag}"
   end
 end
