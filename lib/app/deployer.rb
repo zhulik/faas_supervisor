@@ -3,8 +3,6 @@
 class App::Deployer
   include App::Helpers
 
-  include Bus::Publisher
-
   WAIT_UPDATE_ATTEMPS = 10
   WAIT_UPDATE_INTERVAL = 5
 
@@ -13,6 +11,7 @@ class App::Deployer
   option :interval, type: T::Strict::Float
 
   inject :kubernetes
+  inject :bus
 
   def run
     Async::Timer.new(interval, run_on_start: true, call: self, on_error: ->(e) { warn(e) })
@@ -20,7 +19,7 @@ class App::Deployer
   end
 
   # TODO: add timeout
-  def call
+  def call # rubocop:disable Metrics/AbcSize
     debug { "Checking..." }
 
     return debug { "Update is in progress. Nothing to do." } if @wait_task
@@ -31,9 +30,9 @@ class App::Deployer
 
     return debug { "Deployment image has not been updated. Nothing to do." } if updated_images.empty?
 
-    publish_event("kubernetes.application.published_image_updated", kind: "deployment",
-                                                                    name: deployment_name,
-                                                                    namespace:)
+    bus.publish("kubernetes.application.published_image_updated", kind: "deployment",
+                                                                  name: deployment_name,
+                                                                  namespace:)
 
     @wait_task = Async { restart_deployment!(updated_images) }
   end
@@ -83,9 +82,9 @@ class App::Deployer
     wait_for_restart(updates)
     @wait_task = nil
 
-    publish_event("kubernetes.application.restarted", kind: "deployment",
-                                                      name: deployment_name,
-                                                      namespace:)
+    bus.publish("kubernetes.application.restarted", kind: "deployment",
+                                                    name: deployment_name,
+                                                    namespace:)
   end
 
   def restart_annotations

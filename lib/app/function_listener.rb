@@ -2,11 +2,11 @@
 
 class App::FunctionListener
   include App::Helpers
-  include Bus::Publisher
 
   option :update_interval, type: T::Coercible::Float
 
   inject :openfaas
+  inject :bus
 
   def run
     Async::Timer.new(update_interval, run_on_start: true, call: self, on_error: ->(e) { warn(e) })
@@ -18,7 +18,7 @@ class App::FunctionListener
     functions = openfaas.functions
     debug { "Functions found: #{functions.count}" }
 
-    publish_event("faas_supervisor.functions.found", functions.count)
+    bus.publish("faas_supervisor.functions.found", functions.count)
 
     supervisors.update(functions)
   end

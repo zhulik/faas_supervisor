@@ -3,8 +3,7 @@
 class App::MetricsCollector
   include App::Helpers
 
-  include Bus::Publisher
-  include Bus::Subscriber
+  inject :bus
 
   def run
     convert("faas_supervisor.functions.found", "metrics.updated") do |value|
@@ -18,5 +17,5 @@ class App::MetricsCollector
 
   private
 
-  def convert(from_event, to_event) = subscribe_event(from_event) { publish_event(to_event, **yield(_1.payload)) }
+  def convert(from_event, to_event) = bus.subscribe(from_event) { bus.publish(to_event, **yield(_1)) }
 end

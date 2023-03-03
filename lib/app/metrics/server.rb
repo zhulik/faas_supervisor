@@ -2,7 +2,8 @@
 
 class App::Metrics::Server
   include App::Helpers
-  include Bus::Subscriber
+
+  inject :bus
 
   PATHS = ["/metrics", "/metrics/"].freeze
 
@@ -31,8 +32,8 @@ class App::Metrics::Server
   memoize def metrics_store = Metrics::Store.new
 
   def subscribe_to_metrics!
-    subscribe_event("metrics.updated") do |event|
-      event.payload.each { metrics_store.set(_1, **_2) }
+    bus.subscribe("metrics.updated") do |metrics|
+      metrics.each { metrics_store.set(_1, **_2) }
     end
   end
 

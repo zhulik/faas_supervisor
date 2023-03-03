@@ -4,7 +4,7 @@ source "https://rubygems.org"
 
 gem "async"
 gem "async-http"
-gem "async-tools"
+gem "async-tools", path: "../async-tools"
 
 gem "bootsnap", require: false
 

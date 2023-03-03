@@ -2,7 +2,6 @@
 
 class App::Metrics::Store
   include App::Helpers
-  include Bus::Subscriber
 
   include Enumerable
 

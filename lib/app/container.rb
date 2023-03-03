@@ -13,7 +13,7 @@ class App::Container
       kubernetes: Kubernetes::Client.new(host: config.kubernetes_url,
                                          scheme: config.kubernetes_scheme),
       prometheus: ::Prometheus::ApiClient.client(url: config.prometheus_url),
-      bus: Bus.new
+      bus: Async::Bus.new(:faas_supervisor)
     }.each { register(_1, _2) }
   end
 end
