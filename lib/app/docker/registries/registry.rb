@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 class App::Docker::Registries::Registry
-  include App
+  include Memery
 
   DEFAULT_HEADERS = {
     Accept: [
@@ -17,7 +17,10 @@ class App::Docker::Registries::Registry
 
   private
 
-  def connection = raise NotImplementedError
+  memoize def connection
+    raise NotImplementedError
+  end
+
   def token(image_name) = raise NotImplementedError
 
   def configure_connection(faraday)

@@ -31,7 +31,7 @@ GEM
       rspec (~> 3.0)
       rspec-files (~> 1.0)
       rspec-memory (~> 1.0)
-    async-tools (0.2.1)
+    async-tools (0.2.2)
       async (~> 2.3)
       zeitwerk (~> 2.6)
     backport (1.2.0)
