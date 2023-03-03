@@ -1,7 +1,9 @@
 # frozen_string_literal: true
 
 class App::Kubernetes::Client
-  include App::Helpers
+  extend Dry::Initializer
+
+  include App
 
   SERVICE_ACCOUNT_PATH = "/var/run/secrets/kubernetes.io/serviceaccount"
 

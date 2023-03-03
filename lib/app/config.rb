@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
-class App::Config < App::Struct
+class App::Config < Dry::Struct
+  include Async::App::Component
+
   DEFAULT_KUBERNETES_HOST = "127.0.0.1"
 
   attribute :openfaas_url, T::Strict::String

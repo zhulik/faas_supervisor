@@ -1,8 +1,7 @@
 # frozen_string_literal: true
 
 class App::Supervisors
-  include App::Helpers
-  include Bus::Publisher
+  include App
 
   def update(functions)
     functions = functions.group_by(&:name).transform_values(&:first)
@@ -13,7 +12,7 @@ class App::Supervisors
 
     if (added + deleted + updated).positive?
       info { "Added: #{added}, Deleted: #{deleted}, Updated: #{updated}" }
-      publish_event("faas_supervisor.supervised_functions.changed", added:, deleted:, updated:, total:)
+      bus.publish("faas_supervisor.supervised_functions.changed", added:, deleted:, updated:, total:)
     end
     debug { "Total functions supervised: #{total}" }
   end

@@ -1,8 +1,9 @@
 # frozen_string_literal: true
 
 class App::FunctionListener
-  include App::Helpers
-  include Bus::Publisher
+  extend Dry::Initializer
+
+  include App
 
   option :update_interval, type: T::Coercible::Float
 
@@ -18,7 +19,7 @@ class App::FunctionListener
     functions = openfaas.functions
     debug { "Functions found: #{functions.count}" }
 
-    publish_event("faas_supervisor.functions.found", functions.count)
+    bus.publish("faas_supervisor.functions.found", functions.count)
 
     supervisors.update(functions)
   end

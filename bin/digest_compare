@@ -10,7 +10,7 @@ IMAGES = kubernetes.core_v1_api
                    .list_core_v1_pod_for_all_namespaces
                    .items
                    .flat_map { _1.status.container_statuses }
-                   .map { App::Image.new(image: _1.image, image_id: _1.image_id) }
+                   .map { App::PodImage.new(target: _1.image, deployed: _1.image_id) }
                    .uniq(&:image)
 
 SEM = Async::Semaphore.new(10)
@@ -18,9 +18,9 @@ SEM = Async::Semaphore.new(10)
 def fetch(registry, image)
   SEM.async do
     {
-      image: SEM.async { image.image },
+      image: SEM.async { image.target },
       our_digest: SEM.async { registry.published_digest(name: image.full_name, tag: image.tag) },
-      skopeo_digest: SEM.async { `skopeo inspect docker://#{image.image} | jq -r .Digest`.strip }
+      skopeo_digest: SEM.async { `skopeo inspect docker://#{image.target} | jq -r .Digest`.strip }
     }.transform_values(&:wait)
   end
 end

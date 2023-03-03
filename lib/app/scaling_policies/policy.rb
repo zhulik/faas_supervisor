@@ -1,7 +1,9 @@
 # frozen_string_literal: true
 
 class App::ScalingPolicies::Policy
-  include App::Helpers
+  extend Dry::Initializer
+
+  include App
 
   option :function, type: T.Instance(Openfaas::Function)
 

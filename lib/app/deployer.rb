@@ -1,9 +1,9 @@
 # frozen_string_literal: true
 
 class App::Deployer
-  include App::Helpers
+  extend Dry::Initializer
 
-  include Bus::Publisher
+  include App
 
   WAIT_UPDATE_ATTEMPS = 10
   WAIT_UPDATE_INTERVAL = 5
@@ -20,7 +20,7 @@ class App::Deployer
   end
 
   # TODO: add timeout
-  def call
+  def call # rubocop:disable Metrics/AbcSize
     debug { "Checking..." }
 
     return debug { "Update is in progress. Nothing to do." } if @wait_task
@@ -31,9 +31,9 @@ class App::Deployer
 
     return debug { "Deployment image has not been updated. Nothing to do." } if updated_images.empty?
 
-    publish_event("kubernetes.application.published_image_updated", kind: "deployment",
-                                                                    name: deployment_name,
-                                                                    namespace:)
+    bus.publish("kubernetes.application.published_image_updated", kind: "deployment",
+                                                                  name: deployment_name,
+                                                                  namespace:)
 
     @wait_task = Async { restart_deployment!(updated_images) }
   end
@@ -54,7 +54,7 @@ class App::Deployer
               .items
               .reject { _1.metadata.deletion_timestamp }
               .flat_map { _1.status.container_statuses }
-              .map { Image.new(image: _1.image, image_id: _1.image_id) }
+              .map { PodImage.new(target: _1.image, deployed: _1.image_id) }
               .uniq
   end
 
@@ -67,7 +67,7 @@ class App::Deployer
   def async_fetch_digest_for(image)
     Async do
       {
-        image.image => {
+        image.target => {
           published: published_digest(image),
           deployed: image.digest
         }
@@ -83,9 +83,9 @@ class App::Deployer
     wait_for_restart(updates)
     @wait_task = nil
 
-    publish_event("kubernetes.application.restarted", kind: "deployment",
-                                                      name: deployment_name,
-                                                      namespace:)
+    bus.publish("kubernetes.application.restarted", kind: "deployment",
+                                                    name: deployment_name,
+                                                    namespace:)
   end
 
   def restart_annotations
@@ -103,7 +103,7 @@ class App::Deployer
     WAIT_UPDATE_ATTEMPS.times do |attempt|
       debug { "Wait restart attempt #{attempt + 1}" }
 
-      return info { "Deployment restarted" } if images.all? { _1.digest == updates[_1.image][:published] }
+      return info { "Deployment restarted" } if images.all? { _1.digest == updates[_1.target][:published] }
 
       sleep(WAIT_UPDATE_INTERVAL)
     end

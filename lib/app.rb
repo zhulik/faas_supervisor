@@ -29,8 +29,13 @@ Dry::Struct.load_extensions(:pretty_print)
 loader = Zeitwerk::Loader.for_gem
 loader.setup
 
-module App # rubocop:disable Style/ClassAndModuleChildren
+module App
   class Error < StandardError; end
+
+  def self.included(base)
+    base.include(Async::App::Component)
+    base.include(Memery)
+  end
 end
 
 loader.eager_load

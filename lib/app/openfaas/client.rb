@@ -1,7 +1,9 @@
 # frozen_string_literal: true
 
 class App::Openfaas::Client
-  include App::Helpers
+  extend Dry::Initializer
+
+  include App
 
   option :url, type: T::Strict::String
   option :username, type: T::Strict::String
