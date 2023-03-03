@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 class App::Docker::Registries::Registry
-  include App::Helpers
+  include App
 
   DEFAULT_HEADERS = {
     Accept: [

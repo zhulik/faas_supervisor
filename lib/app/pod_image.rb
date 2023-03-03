@@ -1,7 +1,9 @@
 # frozen_string_literal: true
 
 # TODO: extract a separate class for working image ids
-class App::PodImage < App::Struct
+class App::PodImage < Dry::Struct
+  include App
+
   attribute :target, T::Constructor(Docker::ImageReference)
   attribute :deployed, T::Constructor(Docker::ImageReference)
 

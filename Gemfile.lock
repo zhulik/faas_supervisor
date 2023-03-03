@@ -5,13 +5,6 @@ GIT
     prometheus-api-client (0.6.2)
       faraday (>= 2.0.0, < 3.0.0)
 
-PATH
-  remote: ../async-tools
-  specs:
-    async-tools (0.2.1)
-      async (~> 2.3)
-      zeitwerk (~> 2.6)
-
 GEM
   remote: https://rubygems.org/
   specs:
@@ -38,6 +31,9 @@ GEM
       rspec (~> 3.0)
       rspec-files (~> 1.0)
       rspec-memory (~> 1.0)
+    async-tools (0.2.1)
+      async (~> 2.3)
+      zeitwerk (~> 2.6)
     backport (1.2.0)
     benchmark (0.2.1)
     bootsnap (1.16.0)
@@ -208,7 +204,7 @@ DEPENDENCIES
   async
   async-http
   async-rspec
-  async-tools!
+  async-tools
   bootsnap
   dry-container
   dry-events

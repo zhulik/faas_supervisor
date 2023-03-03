@@ -3,12 +3,11 @@
 class App::FunctionListener
   extend Dry::Initializer
 
-  include App::Helpers
+  include App
 
   option :update_interval, type: T::Coercible::Float
 
   inject :openfaas
-  inject :bus
 
   def run
     Async::Timer.new(update_interval, run_on_start: true, call: self, on_error: ->(e) { warn(e) })

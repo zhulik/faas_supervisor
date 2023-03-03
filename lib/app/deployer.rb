@@ -3,7 +3,7 @@
 class App::Deployer
   extend Dry::Initializer
 
-  include App::Helpers
+  include App
 
   WAIT_UPDATE_ATTEMPS = 10
   WAIT_UPDATE_INTERVAL = 5
@@ -13,7 +13,6 @@ class App::Deployer
   option :interval, type: T::Strict::Float
 
   inject :kubernetes
-  inject :bus
 
   def run
     Async::Timer.new(interval, run_on_start: true, call: self, on_error: ->(e) { warn(e) })

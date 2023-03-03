@@ -1,7 +1,9 @@
 # frozen_string_literal: true
 
-class App::Openfaas::SupervisorConfig < App::Struct
-  class AutoscalingConfig < App::Struct
+class App::Openfaas::SupervisorConfig < Dry::Struct
+  include App
+
+  class AutoscalingConfig < Dry::Struct
     attribute :enabled, T::Params::Bool.default(false)
 
     attribute :update_interval, T::Coercible::Integer.default(10)
@@ -12,10 +14,11 @@ class App::Openfaas::SupervisorConfig < App::Struct
     def enabled? = enabled
   end
 
-  class AutodeploymentConnfig < App::Struct
+  class AutodeploymentConnfig < Dry::Struct
     attribute :enabled, T::Params::Bool.default(false)
-    attribute :interval, T::Strict::Float.default(0.0)
-                                         .constructor { _1 == Dry::Core::Undefined ? _1 : IntervalParser.parse(_1) }
+    attribute(:interval, T::Strict::Float.default(0.0).constructor do |arg|
+      arg == Dry::Core::Undefined ? arg : App::IntervalParser.parse(arg)
+    end)
 
     def enabled? = enabled
   end

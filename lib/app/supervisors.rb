@@ -1,9 +1,7 @@
 # frozen_string_literal: true
 
 class App::Supervisors
-  include App::Helpers
-
-  inject :bus
+  include App
 
   def update(functions)
     functions = functions.group_by(&:name).transform_values(&:first)

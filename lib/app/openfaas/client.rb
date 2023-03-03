@@ -3,7 +3,7 @@
 class App::Openfaas::Client
   extend Dry::Initializer
 
-  include App::Helpers
+  include App
 
   option :url, type: T::Strict::String
   option :username, type: T::Strict::String

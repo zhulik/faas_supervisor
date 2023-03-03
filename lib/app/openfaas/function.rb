@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
-class App::Openfaas::Function < App::Struct
+class App::Openfaas::Function < Dry::Struct
+  include App
+
   attribute :name, T::Strict::String
   attribute :namespace, T::Strict::String
 

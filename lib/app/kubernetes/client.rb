@@ -3,7 +3,7 @@
 class App::Kubernetes::Client
   extend Dry::Initializer
 
-  include App::Helpers
+  include App
 
   SERVICE_ACCOUNT_PATH = "/var/run/secrets/kubernetes.io/serviceaccount"
 

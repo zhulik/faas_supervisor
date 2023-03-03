@@ -3,7 +3,7 @@
 class App::Metrics::Serializer
   extend Dry::Initializer
 
-  include App::Helpers
+  include App
 
   option :prefix, type: T::StringLike
 

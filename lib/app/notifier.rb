@@ -3,11 +3,9 @@
 class App::Notifier
   extend Dry::Initializer
 
-  include App::Helpers
+  include App
 
   option :url, type: T::Strict::String
-
-  inject :bus
 
   def run
     bus.async_subscribe("kubernetes.application.published_image_updated") do |event|

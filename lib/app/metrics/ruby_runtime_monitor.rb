@@ -1,9 +1,7 @@
 # frozen_string_literal: true
 
 class App::Metrics::RubyRuntimeMonitor
-  include App::Helpers
-
-  inject :bus
+  include Async::App::Component
 
   INTERVAL = 2
 

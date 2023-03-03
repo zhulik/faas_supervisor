@@ -3,7 +3,7 @@
 class App::Supervisor
   extend Dry::Initializer
 
-  include App::Helpers
+  include App
 
   option :function, type: T.Instance(Openfaas::Function)
 
