@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
 class App::FunctionListener
+  extend Dry::Initializer
+
   include App::Helpers
 
   option :update_interval, type: T::Coercible::Float

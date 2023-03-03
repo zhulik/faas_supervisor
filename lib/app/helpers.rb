@@ -1,15 +1,9 @@
 # frozen_string_literal: true
 
 module App::Helpers
-  include App
-  include Async::Logger
-
-  T = App::Types
-
   def self.included(base)
-    base.extend(Dry::Initializer)
-    base.extend(App::Injector)
-
+    base.include(App)
+    base.include(Async::App::Component)
     base.include(Memery)
   end
 end

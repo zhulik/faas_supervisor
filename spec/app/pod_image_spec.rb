@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-RSpec.describe App::Image do
+RSpec.describe App::PodImage do
   subject { described_class.new(target:, deployed:) }
 
   let(:target) { "ghcr.io/zhulik/fn-dummy:latest" }

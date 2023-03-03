@@ -14,9 +14,5 @@ require_relative "../lib/app"
 # require "pry"
 # Pry.start
 
-module T
-  include App::Types
-end
-
 require "irb"
 IRB.start(__FILE__)

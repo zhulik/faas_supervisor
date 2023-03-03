@@ -6,4 +6,4 @@ Bootsnap.setup(cache_dir: "tmp/cache")
 
 require_relative "../lib/app"
 
-Sync { App::Application.instance.run }
+Sync { App::Application.new }

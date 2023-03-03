@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
 class App::Metrics::Serializer
+  extend Dry::Initializer
+
   include App::Helpers
 
   option :prefix, type: T::StringLike

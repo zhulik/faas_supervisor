@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
 class App::Deployer
+  extend Dry::Initializer
+
   include App::Helpers
 
   WAIT_UPDATE_ATTEMPS = 10

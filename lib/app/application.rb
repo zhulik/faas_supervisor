@@ -1,40 +1,29 @@
 # frozen_string_literal: true
 
-class App::Application
+class App::Application < Async::App
   include App
-
-  extend App::Injector
-
-  include Singleton
-
   include Memery
-  include Async::Logger
 
   inject :kubernetes
 
-  memoize def container = Container.new(config)
+  def container_config
+    {
+      openfaas: Openfaas::Client.new(url: config.openfaas_url,
+                                     username: config.openfaas_username,
+                                     password: config.openfaas_password),
+      kubernetes: Kubernetes::Client.new(host: config.kubernetes_url,
+                                         scheme: config.kubernetes_scheme),
+      prometheus: ::Prometheus::ApiClient.client(url: config.prometheus_url)
+    }
+  end
 
-  def run
-    @task = Async::Task.current
-    set_traps!
-
+  def run!
     start_notifier!
     start_metrics_server!
     start_ruby_runtime_monitor!
     start_metrics_collector!
     start_function_listener!
     start_self_deployer!
-
-    info { "Started" }
-  rescue StandardError => e
-    fatal { e }
-    stop
-    exit(1)
-  end
-
-  def stop
-    @task&.stop
-    info { "Stopped" }
   end
 
   private
@@ -58,21 +47,5 @@ class App::Application
     Deployer.new(deployment_name: config.deployment_name,
                  namespace: kubernetes.current_namespace,
                  interval: config.self_update_interval).run
-  end
-
-  def set_traps!
-    trap("INT") do
-      force_exit! if @stopping
-      @stopping = true
-      warn { "Interrupted, stopping. Press ^C once more to force exit." }
-      stop
-    end
-
-    trap("TERM") { stop }
-  end
-
-  def force_exit!
-    fatal { "Forced exit" }
-    exit(1)
   end
 end

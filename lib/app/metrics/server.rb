@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
 class App::Metrics::Server
+  extend Dry::Initializer
+
   include App::Helpers
 
   inject :bus
