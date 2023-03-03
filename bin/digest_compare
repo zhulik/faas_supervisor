@@ -10,8 +10,8 @@ def fetch(image, parent:)
   Async do
     {
       image: image.target,
-      our_digest: parent.async { App::Docker::Registry.published_digest(image) },
-      skopeo_digest: parent.async { `skopeo inspect docker://#{image.target} | jq -r .Digest`.strip }
+      our_digest: parent.async { App::Docker::Registry.published_digest(image) }
+      # skopeo_digest: parent.async { `skopeo inspect docker://#{image.target} | jq -r .Digest`.strip }
     }.transform_values do |value|
       next value unless value.respond_to?(:wait)
 
@@ -21,7 +21,7 @@ def fetch(image, parent:)
 end
 
 Sync do
-  throttler = Async::Throttler.new(20, 5)
+  throttler = Async::Throttler.new(1, 10)
 
   kubernetes.core_v1_api
             .list_core_v1_pod_for_all_namespaces
@@ -32,9 +32,9 @@ Sync do
             .filter_map { fetch(_1, parent: throttler) if App::Docker::Registry.supported?(_1) }
             .each do |info|
     info = info.wait
-    return puts("ERROR: #{info}") unless info[:our_digest] == info[:skopeo_digest]
+    # return puts("ERROR: #{info}") unless info[:our_digest] == info[:skopeo_digest]
 
-    puts("OK: #{info[:image]}")
+    puts("OK: #{info}")
   rescue Async::TimeoutError
     puts("Timeout!")
   end

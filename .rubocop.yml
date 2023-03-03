@@ -51,3 +51,4 @@ Style/NumberedParametersLimit:
 Naming/MethodParameterName:
   AllowedNames:
     - n
+    - id
