@@ -8,7 +8,7 @@ class App::Application
   include Singleton
 
   include Memery
-  include App::Logger
+  include Async::Logger
 
   inject :kubernetes
 

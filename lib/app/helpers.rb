@@ -2,7 +2,7 @@
 
 module App::Helpers
   include App
-  include App::Logger
+  include Async::Logger
 
   T = App::Types
 
