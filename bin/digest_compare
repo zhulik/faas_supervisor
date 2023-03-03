@@ -11,7 +11,7 @@ IMAGES = kubernetes.core_v1_api
                    .items
                    .flat_map { _1.status.container_statuses }
                    .map { App::PodImage.new(target: _1.image, deployed: _1.image_id) }
-                   .uniq(&:image)
+                   .uniq(&:target)
 
 SEM = Async::Semaphore.new(10)
 
