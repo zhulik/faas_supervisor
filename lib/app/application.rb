@@ -2,7 +2,6 @@
 
 class App::Application < Async::App
   include App
-  include Memery
 
   inject :kubernetes
 
@@ -19,8 +18,7 @@ class App::Application < Async::App
 
   def run!
     start_notifier!
-    start_metrics_server!
-    start_ruby_runtime_monitor!
+
     start_metrics_collector!
     start_function_listener!
     start_self_deployer!
@@ -28,12 +26,12 @@ class App::Application < Async::App
 
   private
 
+  def app_name = :faas_supervisor
+
   memoize def config = Config.build
 
-  def start_ruby_runtime_monitor! = Metrics::RubyRuntimeMonitor.new.run
   def start_function_listener! = FunctionListener.new(update_interval: config.update_interval).run
   def start_metrics_collector! = MetricsCollector.new.run
-  def start_metrics_server! = Metrics::Server.new(prefix: :faas_supervisor, port: config.metrics_server_port).run
 
   def start_notifier!
     return unless config.notification_webhook_url

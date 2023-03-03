@@ -1,11 +1,9 @@
 # frozen_string_literal: true
 
 module App::Docker::RegistryFactory
-  include App::Docker
-
   REGISTRIES = {
-    "ghcr.io" => Registries::Ghcr.new,
-    "docker.io" => Registries::Docker.new
+    "ghcr.io" => App::Docker::Registries::Ghcr.new,
+    "docker.io" => App::Docker::Registries::Docker.new
   }.freeze
 
   def self.build(name)

@@ -17,8 +17,6 @@ class App::Config < Dry::Struct
   attribute :update_interval, T::Coercible::Float.default(10)
   attribute :self_update_interval, T::Coercible::Float
 
-  attribute :metrics_server_port, T::Coercible::Integer.default(8080)
-
   attribute :deployment_name, T::Strict::String.default("faas-supervisor")
 
   attribute :notification_webhook_url, T::Strict::String.optional
@@ -38,7 +36,6 @@ class App::Config < Dry::Struct
 
         update_interval: ENV.fetch("SUPERVISOR_UPDATE_INTERVAL", "10"),
 
-        metrics_server_port: ENV.fetch("SUPERVISOR_METRICS_SERVER_PORT", "8080"),
         kubernetes_url: "#{kubernetes_host}:#{kubernetes_port}",
         kubernetes_scheme:,
         self_update_interval: ENV.fetch("SELF_UPDATE_INTERVAL", 30),
