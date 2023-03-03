@@ -13,12 +13,15 @@ class App::Docker::Registries::Registry
   def published_digest(reference)
     raise ArgumentError, "reference must have non-nil tag" if reference.tag.nil?
 
+    throttler.wait
     connection.get("/v2/#{reference.full_name}/manifests/#{reference.tag}", {},
                    DEFAULT_HEADERS.merge(Authorization: "Bearer #{token(reference)}"))
               .headers["docker-content-digest"]
   end
 
   private
+
+  memoize def throttler = Async::Throttler.new(5, 10)
 
   memoize def connection
     raise NotImplementedError

@@ -56,4 +56,7 @@ class App::Docker::ImageReference
       @name = name
     end
   end
+
+  def hash = [self.class, to_s].hash
+  def eql?(other) = self.class == other.class && to_s == other.to_s
 end
