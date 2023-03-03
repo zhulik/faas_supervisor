@@ -6,9 +6,13 @@ module App::Docker::RegistryFactory
     "docker.io" => App::Docker::Registries::Docker.new
   }.freeze
 
-  def self.build(name)
-    REGISTRIES[name].tap do |reg|
-      raise ArgumentError, "registry #{name} is not supported" if reg.nil?
+  class << self
+    def build(reference)
+      REGISTRIES[reference.registry].tap do |reg|
+        raise ArgumentError, "registry of #{reference} is not supported" if reg.nil?
+      end
     end
+
+    def supported?(name) = REGISTRIES.key?(name)
   end
 end

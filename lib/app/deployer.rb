@@ -42,8 +42,7 @@ class App::Deployer
 
   def logger_info = "Deployment = #{deployment_name.inspect}"
 
-  def published_digest(image) = registry(image).published_digest(name: image.full_name, tag: image.tag)
-  memoize def registry(image) = App::Docker::RegistryFactory.build(image.registry)
+  def published_digest(image) = App::Docker::Registry.published_digest(image)
 
   memoize def deployment = kubernetes.apps_v1_api.read_apps_v1_namespaced_deployment(deployment_name, namespace)
   def label_selector = deployment.spec.selector.match_labels.map { "#{_1}=#{_2}" }.join(",")

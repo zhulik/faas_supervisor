@@ -5,10 +5,10 @@ class App::Docker::Registries::Ghcr < App::Docker::Registries::Registry
 
   def connection = Faraday.new("https://ghcr.io") { configure_connection(_1) }
 
-  def token(name)
+  def token(reference)
     connection.get("/token", {
                      service: "ghcr.io",
-                     scope: "scope=repository:#{name}:pull"
+                     scope: "scope=repository:#{reference.full_name}:pull"
                    }).body[:token]
   end
 end

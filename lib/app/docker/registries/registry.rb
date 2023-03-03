@@ -10,8 +10,11 @@ class App::Docker::Registries::Registry
     ].freeze
   }.freeze
 
-  def published_digest(name:, tag:)
-    connection.get("/v2/#{name}/manifests/#{tag}", {}, DEFAULT_HEADERS.merge(Authorization: "Bearer #{token(name)}"))
+  def published_digest(reference)
+    raise ArgumentError, "reference must have non-nil tag" if reference.tag.nil?
+
+    connection.get("/v2/#{reference.full_name}/manifests/#{reference.tag}", {},
+                   DEFAULT_HEADERS.merge(Authorization: "Bearer #{token(reference)}"))
               .headers["docker-content-digest"]
   end
 
@@ -21,7 +24,7 @@ class App::Docker::Registries::Registry
     raise NotImplementedError
   end
 
-  def token(image_name) = raise NotImplementedError
+  def token(reference) = raise NotImplementedError
 
   def configure_connection(faraday)
     faraday.response :raise_error

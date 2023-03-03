@@ -13,25 +13,21 @@ IMAGES = kubernetes.core_v1_api
                    .map { App::PodImage.new(target: _1.image, deployed: _1.image_id) }
                    .uniq(&:target)
 
-SEM = Async::Semaphore.new(10)
+SEM = Async::Semaphore.new(20)
 
-def fetch(registry, image)
+def fetch(image)
   SEM.async do
     {
       image: SEM.async { image.target },
-      our_digest: SEM.async { registry.published_digest(name: image.full_name, tag: image.tag) },
+      our_digest: SEM.async { App::Docker::Registry.published_digest(image) },
       skopeo_digest: SEM.async { `skopeo inspect docker://#{image.target} | jq -r .Digest`.strip }
     }.transform_values(&:wait)
   end
 end
 
 Sync do
-  res = IMAGES.filter_map do |image|
-    registry = App::Docker::RegistryFactory.build(image.registry)
-    fetch(registry, image)
-  rescue ArgumentError
-    nil
-  end.map(&:wait)
+  res = IMAGES.filter_map { fetch(_1) if App::Docker::Registry.supported?(_1) }
+              .map(&:wait)
 
   res.each do |info|
     puts(info) if info[:our_digest] != info[:skopeo_digest]
