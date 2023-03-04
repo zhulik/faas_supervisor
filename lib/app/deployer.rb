@@ -102,7 +102,7 @@ class App::Deployer
     WAIT_UPDATE_ATTEMPS.times do |attempt|
       debug { "Wait restart attempt #{attempt + 1}" }
 
-      return info { "Deployment restarted" } if images.all? { _1.digest == updates[_1.target][:published] }
+      return info { "Deployment restarted" } if images.all? { _1.digest == updates.dig(_1.target, :published) }
 
       sleep(WAIT_UPDATE_INTERVAL)
     end
