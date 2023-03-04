@@ -22,25 +22,13 @@ class App::Docker::Registries::Registry
   private
 
   memoize def throttler = Async::Throttler.new(1, 10)
-  memoize def cache = Hash.new { _1[_2] = {} }
+  memoize def token_cache = Async::Cache.new
 
   memoize def connection
     raise NotImplementedError
   end
 
-  def cached_token(reference) = with_cache(reference, duration: 50) { token(_1) }
-
-  def with_cache(id, duration:, &)
-    existing = cache[id]
-
-    existing[:task]&.wait
-    return existing[:value] if existing[:value] && Time.now - existing[:created_at] < duration
-
-    Async { existing.merge!(value: yield(id), created_at: Time.now) }.tap do |task|
-      existing[:task] = task
-    end
-    with_cache(id, duration:, &)
-  end
+  def cached_token(reference) = token_cache.cache(reference, duration: 50) { token(_1) }
 
   def token(reference) = raise NotImplementedError
 
